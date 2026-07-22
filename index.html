@@ -8,98 +8,104 @@
 <style>
   :root {
     color-scheme: light;
-    --page:           #f9f9f7;
-    --surface-1:      #fcfcfb;
+    --page:           #f4f2ee;   /* LinkedIn-Hintergrund */
+    --surface-1:      #ffffff;
     --text-primary:   #0b0b0b;
     --text-secondary: #52514e;
     --text-muted:     #898781;
-    --grid:           #e1e0d9;
+    --grid:           #e9e7e2;
     --baseline:       #c3c2b7;
-    --border:         rgba(11,11,11,0.10);
+    --border:         rgba(11,11,11,0.08);
     --series-1:       #2a78d6;  /* Impressions */
     --series-2:       #eb6834;  /* Follower */
     --series-3:       #1baf7a;  /* Engagement-Rate */
+    --funnel:         #2a78d6;
     --delta-good:     #006300;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      color-scheme: dark;
-      --page:           #0d0d0d;
-      --surface-1:      #1a1a19;
-      --text-primary:   #ffffff;
-      --text-secondary: #c3c2b7;
-      --text-muted:     #898781;
-      --grid:           #2c2c2a;
-      --baseline:       #383835;
-      --border:         rgba(255,255,255,0.10);
-      --series-1:       #3987e5;
-      --series-2:       #d95926;
-      --series-3:       #199e70;
-      --delta-good:     #0ca30c;
-    }
+    --accent:         #0a66c2;  /* LinkedIn-Blau fürs Branding */
+    --shadow: 0 1px 2px rgba(11,11,11,0.05), 0 4px 16px rgba(11,11,11,0.04);
   }
   * { box-sizing: border-box; margin: 0; }
   body {
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     background: var(--page);
     color: var(--text-primary);
-    line-height: 1.5;
-    padding: 24px;
-    max-width: 1100px;
-    margin: 0 auto;
+    line-height: 1.55;
   }
-  h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  .shell { max-width: 1100px; margin: 0 auto; padding: 0 24px 48px; }
+
+  /* Header */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 0 16px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand-left { display: flex; align-items: center; gap: 12px; }
+  .li-mark {
+    width: 38px; height: 38px; border-radius: 8px;
+    background: var(--accent);
+    display: grid; place-items: center;
+    color: #fff; font-weight: 800; font-size: 1.25rem;
+    letter-spacing: -0.5px;
+  }
+  .brand-left h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; }
+  .brand-left .tag { font-size: 0.78rem; color: var(--text-muted); margin-top: -3px; }
+  .brand-right { text-align: right; }
+  .brand-right .wordmark { font-size: 1.02rem; font-weight: 750; letter-spacing: 0.01em; }
+  .brand-right .wordmark .dot { color: var(--accent); }
+  .brand-right .claim { font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
+
   .sub { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px; }
 
   /* Dropzone */
   #dropzone {
     border: 2px dashed var(--baseline);
-    border-radius: 12px;
-    padding: 40px 24px;
+    border-radius: 16px;
+    padding: 48px 24px;
     text-align: center;
     background: var(--surface-1);
     cursor: pointer;
-    margin-bottom: 24px;
-    transition: border-color .15s;
+    margin-bottom: 16px;
+    transition: border-color .15s, box-shadow .15s;
+    box-shadow: var(--shadow);
   }
-  #dropzone.drag { border-color: var(--series-1); }
+  #dropzone.drag { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(10,102,194,0.10); }
   #dropzone p { color: var(--text-secondary); }
   #dropzone .hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
   #dropzone button {
-    margin-top: 12px;
-    font: inherit;
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: none;
-    color: var(--text-primary);
-    cursor: pointer;
+    margin-top: 16px; font: inherit; font-weight: 600;
+    padding: 9px 18px; border-radius: 999px;
+    border: 1px solid var(--accent);
+    background: none; color: var(--accent); cursor: pointer;
   }
-  .privacy { font-size: 0.78rem; color: var(--text-muted); text-align: center; margin: -12px 0 24px; }
+  #dropzone button:hover { background: rgba(10,102,194,0.06); }
+  .privacy { font-size: 0.78rem; color: var(--text-muted); text-align: center; margin: 0 0 28px; }
 
   /* KPI tiles */
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 24px; }
   .tile {
     background: var(--surface-1);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: var(--shadow);
   }
-  .tile .label { font-size: 0.78rem; color: var(--text-secondary); }
-  .tile .value { font-size: 1.7rem; font-weight: 650; margin-top: 2px; }
-  .tile .delta { font-size: 0.78rem; color: var(--text-muted); }
+  .tile .label { font-size: 0.76rem; color: var(--text-secondary); letter-spacing: 0.02em; }
+  .tile .value { font-size: 1.85rem; font-weight: 700; letter-spacing: -0.02em; margin-top: 2px; }
+  .tile .delta { font-size: 0.76rem; color: var(--text-muted); }
   .tile .delta.good { color: var(--delta-good); }
 
-  /* Cards / charts */
+  /* Cards */
   .card {
     background: var(--surface-1);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 22px;
+    box-shadow: var(--shadow);
   }
-  .card h2 { font-size: 1rem; margin-bottom: 2px; }
-  .card .desc { font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 14px; }
+  .card h2 { font-size: 1.02rem; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 2px; }
+  .card .desc { font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 16px; }
   .legend { display: flex; gap: 16px; font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 8px; flex-wrap: wrap; }
   .legend .item { display: flex; align-items: center; gap: 6px; }
   .legend .swatch { width: 10px; height: 10px; border-radius: 3px; }
@@ -108,61 +114,100 @@
 
   /* Tooltip */
   #tooltip {
-    position: fixed;
-    pointer-events: none;
+    position: fixed; pointer-events: none;
     background: var(--surface-1);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-    padding: 8px 12px;
-    font-size: 0.78rem;
-    display: none;
-    z-index: 10;
-    max-width: 320px;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(11,11,11,0.14);
+    padding: 8px 12px; font-size: 0.78rem;
+    display: none; z-index: 10; max-width: 320px;
   }
   #tooltip .t-title { font-weight: 600; }
   #tooltip .t-row { color: var(--text-secondary); }
 
   /* Table */
   table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
-  th { text-align: left; color: var(--text-secondary); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--baseline); white-space: nowrap; }
-  td { padding: 7px 10px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+  th { text-align: left; color: var(--text-secondary); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--baseline); white-space: nowrap; cursor: pointer; }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--grid); vertical-align: top; }
   td.title { max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-  tr:hover td { background: color-mix(in srgb, var(--series-1) 6%, transparent); }
-  a { color: var(--series-1); text-decoration: none; }
+  tr:hover td { background: rgba(42,120,214,0.05); }
+  a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
   .table-wrap { overflow-x: auto; }
   .er-hi { color: var(--delta-good); font-weight: 600; }
 
-  /* Demographics bars */
-  .demo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-  .demo-block h3 { font-size: 0.86rem; margin-bottom: 8px; }
-  .demo-row { display: grid; grid-template-columns: 1fr 44px; gap: 8px; align-items: center; font-size: 0.8rem; margin-bottom: 6px; }
+  /* Funnel */
+  .funnel-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .funnel-inputs label { display: block; font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 4px; }
+  .funnel-inputs input {
+    width: 100%; font: inherit; padding: 8px 12px;
+    border: 1px solid var(--baseline); border-radius: 10px;
+    background: var(--surface-1); color: var(--text-primary);
+  }
+  .funnel-inputs input:focus { outline: 2px solid rgba(10,102,194,0.35); border-color: var(--accent); }
+  .funnel-stage { margin-bottom: 14px; }
+  .funnel-stage .row { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.84rem; margin-bottom: 4px; }
+  .funnel-stage .name { font-weight: 600; }
+  .funnel-stage .val { font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+  .funnel-stage .bar-track { height: 14px; background: var(--grid); border-radius: 7px; overflow: hidden; }
+  .funnel-stage .bar-fill { height: 100%; background: var(--funnel); border-radius: 7px; min-width: 3px; }
+  .funnel-stage .conv { font-size: 0.74rem; color: var(--text-muted); margin-top: 3px; }
+
+  /* Demographics */
+  .demo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+  .demo-block h3 { font-size: 0.86rem; margin-bottom: 10px; }
+  .demo-row { display: grid; grid-template-columns: 1fr 48px; gap: 8px; align-items: center; font-size: 0.8rem; margin-bottom: 7px; }
   .demo-row .name { color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .demo-row .bar-track { grid-column: 1 / -1; height: 8px; background: var(--grid); border-radius: 4px; overflow: hidden; margin-top: -2px; }
+  .demo-row .bar-track { grid-column: 1 / -1; height: 7px; background: var(--grid); border-radius: 4px; overflow: hidden; margin-top: -2px; }
   .demo-row .bar-fill { height: 100%; background: var(--series-1); border-radius: 4px; }
   .demo-row .pct { text-align: right; font-variant-numeric: tabular-nums; }
 
   /* Insights */
-  .insight { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--grid); font-size: 0.88rem; }
+  .insight { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--grid); font-size: 0.88rem; }
   .insight:last-child { border-bottom: none; }
   .insight .icon { flex-shrink: 0; }
 
   #dashboard { display: none; }
-  footer { color: var(--text-muted); font-size: 0.75rem; text-align: center; margin-top: 32px; }
+  footer { color: var(--text-muted); font-size: 0.75rem; text-align: center; margin-top: 36px; }
+
+  /* Passwort-Overlay (nur bei privatem Deployment mit data.enc.json aktiv) */
+  #lock {
+    position: fixed; inset: 0; background: var(--page);
+    display: none; place-items: center; z-index: 50;
+  }
+  #lock .box {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px; box-shadow: var(--shadow);
+    width: min(360px, 90vw); text-align: center;
+  }
+  #lock input { width: 100%; font: inherit; padding: 10px 14px; border: 1px solid var(--baseline); border-radius: 10px; margin: 14px 0 10px; }
+  #lock button { width: 100%; font: inherit; font-weight: 600; padding: 10px; border-radius: 999px; border: none; background: var(--accent); color: #fff; cursor: pointer; }
+  #lock .err { color: #d03b3b; font-size: 0.8rem; min-height: 1.2em; margin-top: 8px; }
 </style>
 </head>
 <body>
+<div class="shell">
 
-<h1>LinkedIn Analytics Dashboard</h1>
-<p class="sub" id="period">Zieh deinen LinkedIn-Export rein und sieh sofort, was funktioniert.</p>
+<header>
+  <div class="brand-left">
+    <div class="li-mark">in</div>
+    <div>
+      <h1>LinkedIn Analytics Dashboard</h1>
+      <div class="tag" id="period">Deine Zahlen, besser aufgedröselt als in LinkedIn selbst.</div>
+    </div>
+  </div>
+  <div class="brand-right">
+    <div class="wordmark">kuehn<span class="dot">.</span>tech</div>
+    <div class="claim">AI · Finance · Systems</div>
+  </div>
+</header>
 
 <div id="dropzone">
   <p><strong>LinkedIn-Analytics-Export hier reinziehen</strong> (XLSX)</p>
   <p class="hint">LinkedIn → Profil → Analytics → Beitragsimpressions → Exportieren (Zeitraum: 365 Tage)</p>
   <input type="file" id="fileInput" accept=".xlsx,.xls" hidden>
-  <button id="demoBtn" type="button">Oder: Demo-Daten ansehen</button>
+  <button id="demoBtn" type="button">Demo-Daten ansehen</button>
 </div>
 <p class="privacy">🔒 Deine Daten bleiben im Browser — nichts wird hochgeladen.</p>
 
@@ -171,14 +216,10 @@
 
   <div class="card">
     <h2>Reichweite &amp; Wachstum pro Monat</h2>
-    <p class="desc">Impressions (Balken) und neue Follower (Balken, eigene Skala darunter). Konsistenz-Check: Lücken hier = Lücken im Wachstum.</p>
-    <div class="legend">
-      <span class="item"><span class="swatch" style="background:var(--series-1)"></span>Impressions</span>
-    </div>
+    <p class="desc">Impressions und neue Follower (getrennte Skalen). Konsistenz-Check: Lücken hier = Lücken im Wachstum.</p>
+    <div class="legend"><span class="item"><span class="swatch" style="background:var(--series-1)"></span>Impressions</span></div>
     <div class="chart-wrap"><div id="chartImpressions"></div></div>
-    <div class="legend" style="margin-top:16px">
-      <span class="item"><span class="swatch" style="background:var(--series-2)"></span>Neue Follower</span>
-    </div>
+    <div class="legend" style="margin-top:18px"><span class="item"><span class="swatch" style="background:var(--series-2)"></span>Neue Follower</span></div>
     <div class="chart-wrap"><div id="chartFollowers"></div></div>
   </div>
 
@@ -189,8 +230,19 @@
   </div>
 
   <div class="card">
+    <h2>Dein Funnel: von Impression zu Anfrage</h2>
+    <p class="desc">LinkedIn misst keine Konvertierung — ergänze deine eigenen Zahlen (werden nur lokal in deinem Browser gespeichert), und das Dashboard rechnet dir den kompletten Funnel durch.</p>
+    <div class="funnel-inputs">
+      <div><label for="inMsgs">Ø Nachrichten / Anfragen pro Monat</label><input type="number" id="inMsgs" min="0" step="1" placeholder="z. B. 4"></div>
+      <div><label for="inLeads">Ø qualifizierte Leads pro Monat</label><input type="number" id="inLeads" min="0" step="1" placeholder="z. B. 1"></div>
+      <div><label for="inProfile">Ø Profilaufrufe pro Monat (optional)</label><input type="number" id="inProfile" min="0" step="1" placeholder="aus LinkedIn Analytics"></div>
+    </div>
+    <div id="funnel"></div>
+  </div>
+
+  <div class="card">
     <h2>Top-Beiträge</h2>
-    <p class="desc">Sortierbar per Klick auf die Spalte. ER ≥ 3&nbsp;% ist grün markiert — diese Formate wiederholen.</p>
+    <p class="desc">Sortierbar per Klick auf die Spalte. ER ≥ 3&nbsp;% ist grün markiert — diese Formate wiederholen. Tipp: Follower- vs. Nicht-Follower-Anteil zeigt LinkedIn nur pro Beitrag in der App (Beitrag → Analytics ansehen) — prüfe ihn bei deinen Top-Posts: hoher Nicht-Follower-Anteil = Reichweiten-Format, hoher Follower-Anteil = Vertrauens-Format.</p>
     <div class="table-wrap"><table id="postsTable">
       <thead><tr>
         <th data-sort="title">Beitrag</th>
@@ -217,7 +269,19 @@
 </div>
 
 <div id="tooltip"></div>
-<footer>Alle Auswertungen laufen lokal im Browser. Open Source — fork it, mach's zu deinem.</footer>
+
+<div id="lock">
+  <div class="box">
+    <div class="li-mark" style="margin:0 auto 12px">in</div>
+    <strong>Privates Dashboard</strong>
+    <input type="password" id="pw" placeholder="Passwort" autofocus>
+    <button id="unlockBtn" type="button">Entsperren</button>
+    <div class="err" id="pwErr"></div>
+  </div>
+</div>
+
+<footer>Alle Auswertungen laufen lokal im Browser · Open Source · <a href="https://github.com/Smartpreneur/linkedin-dashboard">GitHub</a> · ein Tool von <a href="https://kuehn.tech">kuehn.tech</a></footer>
+</div>
 
 <script>
 'use strict';
@@ -225,7 +289,6 @@
 // ---------- Parsing ----------
 
 function parseDate(s) {
-  // LinkedIn DE: "21.7.2026" — EN: "7/21/2026"
   if (typeof s !== 'string') return null;
   let m = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
   if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
@@ -243,12 +306,11 @@ function postSlug(url) {
   const m = url.match(/\/posts\/[^_]+_(.+?)-(?:share|activity|ugcPost)-\d+/);
   if (!m) return url;
   let s = decodeURIComponent(m[1]).replace(/-/g, ' ');
-  // Unicode mathematical bold → ASCII
   s = [...s].map(ch => {
     const cp = ch.codePointAt(0);
-    if (cp >= 0x1D5D4 && cp <= 0x1D5ED) return String.fromCharCode(65 + cp - 0x1D5D4); // bold sans A-Z
-    if (cp >= 0x1D5EE && cp <= 0x1D607) return String.fromCharCode(97 + cp - 0x1D5EE); // bold sans a-z
-    if (cp >= 0x1D7EC && cp <= 0x1D7F5) return String.fromCharCode(48 + cp - 0x1D7EC); // bold digits
+    if (cp >= 0x1D5D4 && cp <= 0x1D5ED) return String.fromCharCode(65 + cp - 0x1D5D4);
+    if (cp >= 0x1D5EE && cp <= 0x1D607) return String.fromCharCode(97 + cp - 0x1D5EE);
+    if (cp >= 0x1D7EC && cp <= 0x1D7F5) return String.fromCharCode(48 + cp - 0x1D7EC);
     return ch;
   }).join('');
   return s.length > 90 ? s.slice(0, 90) + '…' : s;
@@ -257,7 +319,6 @@ function postSlug(url) {
 function parseWorkbook(wb) {
   const rows = ws => ws ? XLSX.utils.sheet_to_json(ws, { header: 1, raw: false }) : [];
 
-  // Summary
   const summary = {};
   for (const r of rows(findSheet(wb, ['AUFFINDBARKEIT', 'DISCOVERY']))) {
     if (!r[0]) continue;
@@ -266,14 +327,12 @@ function parseWorkbook(wb) {
     if (/performance/i.test(r[0])) summary.period = r[1];
   }
 
-  // Daily engagement
   const daily = [];
   for (const r of rows(findSheet(wb, ['ENGAGEMENT']))) {
     const d = parseDate(r[0]);
     if (d) daily.push({ date: d, imp: +r[1] || 0, eng: +r[2] || 0 });
   }
 
-  // Followers
   let followersTotal = null;
   const followersDaily = [];
   for (const r of rows(findSheet(wb, ['FOLLOWER']))) {
@@ -282,26 +341,18 @@ function parseWorkbook(wb) {
     if (d) followersDaily.push({ date: d, n: +r[1] || 0 });
   }
 
-  // Top posts (two side-by-side tables: engagement | impressions)
   const engMap = new Map(), impMap = new Map();
   for (const r of rows(findSheet(wb, ['TOP-BEITR', 'TOP POSTS']))) {
     if (r[0] && String(r[0]).startsWith('http')) engMap.set(r[0], { date: parseDate(r[1]), eng: +r[2] || 0 });
     if (r[4] && String(r[4]).startsWith('http')) impMap.set(r[4], { date: parseDate(r[5]), imp: +r[6] || 0 });
   }
   const posts = [];
-  const urls = new Set([...engMap.keys(), ...impMap.keys()]);
-  for (const url of urls) {
+  for (const url of new Set([...engMap.keys(), ...impMap.keys()])) {
     const e = engMap.get(url), i = impMap.get(url);
     const imp = i ? i.imp : null, eng = e ? e.eng : null;
-    posts.push({
-      url, title: postSlug(url),
-      date: (i && i.date) || (e && e.date) || null,
-      imp, eng,
-      er: imp && eng != null ? eng / imp : null,
-    });
+    posts.push({ url, title: postSlug(url), date: (i && i.date) || (e && e.date) || null, imp, eng, er: imp && eng != null ? eng / imp : null });
   }
 
-  // Demographics
   const demographics = {};
   for (const r of rows(findSheet(wb, ['DEMOGRAF', 'DEMOGRAPH']))) {
     if (!r[0] || !r[1] || !r[2] || /wichtige|top demo/i.test(r[0])) continue;
@@ -317,7 +368,7 @@ function parseWorkbook(wb) {
 // ---------- Aggregation ----------
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
-const fmt = n => n == null ? '–' : n.toLocaleString('de-DE');
+const fmt = n => n == null ? '–' : Math.round(n).toLocaleString('de-DE');
 const fmtPct = x => x == null ? '–' : (x * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %';
 
 function monthly(items, get) {
@@ -337,11 +388,8 @@ function buildModel(data) {
   const months = keys.map(k => {
     const [y, m] = k.split('-');
     return {
-      key: k,
-      label: MONTH_NAMES[+m - 1] + ' ' + y.slice(2),
-      imp: impM.get(k) || 0,
-      eng: engM.get(k) || 0,
-      fol: folM.get(k) || 0,
+      key: k, label: MONTH_NAMES[+m - 1] + ' ' + y.slice(2),
+      imp: impM.get(k) || 0, eng: engM.get(k) || 0, fol: folM.get(k) || 0,
       er: (impM.get(k) || 0) > 0 ? (engM.get(k) || 0) / impM.get(k) : null,
     };
   });
@@ -364,12 +412,11 @@ function showTip(evt, html) {
 function hideTip() { tooltip.style.display = 'none'; }
 
 function barChart(el, months, get, color, valueLabel, format = fmt) {
-  const W = Math.max(560, months.length * 52), H = 180, P = { t: 16, r: 8, b: 24, l: 8 };
+  const W = Math.max(560, months.length * 52), H = 190, P = { t: 18, r: 8, b: 24, l: 8 };
   const max = Math.max(1, ...months.map(get));
   const bw = (W - P.l - P.r) / months.length;
   const maxIdx = months.findIndex(m => get(m) === max);
   let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="${valueLabel} pro Monat">`;
-  // hairline gridlines at 50% / 100%
   for (const f of [0.5, 1]) {
     const y = P.t + (H - P.t - P.b) * (1 - f);
     s += `<line x1="${P.l}" y1="${y}" x2="${W - P.r}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`;
@@ -379,9 +426,7 @@ function barChart(el, months, get, color, valueLabel, format = fmt) {
     const h = (H - P.t - P.b) * v / max;
     const x = P.l + i * bw + bw * 0.18, w = bw * 0.64;
     const y = H - P.b - h;
-    s += `<path d="M${x},${H - P.b} L${x},${y + 4} Q${x},${y} ${x + 4},${y} L${x + w - 4},${y} Q${x + w},${y} ${x + w},${y + 4} L${x + w},${H - P.b} Z"
-      fill="${color}" data-i="${i}" class="bar" style="cursor:default"/>`;
-    // hover hit target wider than the mark
+    s += `<path d="M${x},${H - P.b} L${x},${y + 4} Q${x},${y} ${x + 4},${y} L${x + w - 4},${y} Q${x + w},${y} ${x + w},${y + 4} L${x + w},${H - P.b} Z" fill="${color}"/>`;
     s += `<rect x="${P.l + i * bw}" y="${P.t}" width="${bw}" height="${H - P.t - P.b}" fill="transparent" data-i="${i}" class="hit"/>`;
     s += `<text x="${P.l + i * bw + bw / 2}" y="${H - 6}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${m.label}</text>`;
     if (i === maxIdx && v > 0)
@@ -399,7 +444,7 @@ function barChart(el, months, get, color, valueLabel, format = fmt) {
 }
 
 function lineChart(el, months, get, color, valueLabel, format) {
-  const W = Math.max(560, months.length * 52), H = 160, P = { t: 16, r: 8, b: 24, l: 8 };
+  const W = Math.max(560, months.length * 52), H = 170, P = { t: 18, r: 8, b: 24, l: 8 };
   const vals = months.map(get);
   const max = Math.max(0.01, ...vals.filter(v => v != null));
   const xOf = i => P.l + (i + 0.5) * (W - P.l - P.r) / months.length;
@@ -437,13 +482,85 @@ function lineChart(el, months, get, color, valueLabel, format) {
   });
 }
 
+// ---------- Funnel ----------
+
+function getParams() {
+  try { return JSON.parse(localStorage.getItem('li-funnel-params')) || {}; } catch { return {}; }
+}
+function setParams(p) { localStorage.setItem('li-funnel-params', JSON.stringify(p)); }
+
+let currentModel = null;
+
+function renderFunnel(model) {
+  const p = getParams();
+  const activeMonths = model.months.filter(m => m.imp > 200);
+  const nActive = Math.max(1, activeMonths.length);
+  const impPerMonth = activeMonths.reduce((s, m) => s + m.imp, 0) / nActive;
+  const engPerMonth = activeMonths.reduce((s, m) => s + m.eng, 0) / nActive;
+  const reachedPerMonth = model.summary.reached ? model.summary.reached / Math.max(1, model.months.length) * (model.months.length / nActive) : null;
+
+  const stages = [
+    { name: 'Impressions / Monat (aktive Monate)', v: impPerMonth },
+    reachedPerMonth != null ? { name: 'Erreichte Personen / Monat (≈)', v: reachedPerMonth } : null,
+    { name: 'Engagements / Monat', v: engPerMonth },
+    p.profile ? { name: 'Profilaufrufe / Monat', v: p.profile } : null,
+    p.msgs != null && p.msgs !== '' ? { name: 'Nachrichten & Anfragen / Monat', v: +p.msgs } : null,
+    p.leads != null && p.leads !== '' ? { name: 'Qualifizierte Leads / Monat', v: +p.leads } : null,
+  ].filter(Boolean);
+
+  const max = Math.max(...stages.map(s => s.v), 1);
+  const el = document.getElementById('funnel');
+  el.innerHTML = stages.map((s, i) => {
+    const prev = i > 0 ? stages[i - 1].v : null;
+    const conv = prev && prev > 0 ? s.v / prev : null;
+    const width = Math.max(1.5, Math.sqrt(s.v / max) * 100); // sqrt-Skala, sonst verschwinden untere Stufen
+    return `<div class="funnel-stage">
+      <div class="row"><span class="name">${s.name}</span><span class="val">${fmt(s.v)}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div>
+      ${conv != null ? `<div class="conv">↓ ${fmtPct(conv)} der vorherigen Stufe</div>` : ''}
+    </div>`;
+  }).join('');
+
+  // Funnel-Insights
+  const extra = [];
+  if (p.msgs) {
+    const perMsg = impPerMonth / +p.msgs;
+    extra.push(`✉️ Du brauchst aktuell ca. <strong>${fmt(perMsg)} Impressions pro Nachricht/Anfrage</strong>. Doppelte Reichweite ≈ doppelte Anfragen — solange der Content gleich bleibt.`);
+  }
+  if (p.msgs && p.leads && +p.msgs > 0) {
+    extra.push(`🎯 <strong>${fmtPct(+p.leads / +p.msgs)}</strong> deiner Anfragen werden zu qualifizierten Leads. Wenn diese Quote niedrig ist, zieht dein Content die falschen Leute an — dann hilft schärfere Positionierung mehr als mehr Reichweite.`);
+  }
+  if (p.profile && impPerMonth > 0) {
+    extra.push(`👤 <strong>${fmtPct(+p.profile / impPerMonth)}</strong> deiner Impressions führen zu einem Profilbesuch. Unter 1 %? Dann fehlt in deinen Posts der Grund, auf dich zu klicken (klare Positionierung in den ersten 2 Zeilen, Profil-Slogan).`);
+  }
+  document.getElementById('funnelInsights')?.remove();
+  if (extra.length) {
+    el.insertAdjacentHTML('afterend', `<div id="funnelInsights" style="margin-top:14px">${extra.map(h => `<div class="insight"><span>${h}</span></div>`).join('')}</div>`);
+  }
+}
+
+for (const [id, key] of [['inMsgs', 'msgs'], ['inLeads', 'leads'], ['inProfile', 'profile']]) {
+  const input = document.getElementById(id);
+  input.addEventListener('input', () => {
+    const p = getParams();
+    p[key] = input.value === '' ? null : +input.value;
+    setParams(p);
+    if (currentModel) renderFunnel(currentModel);
+  });
+}
+
 // ---------- Render ----------
 
 function render(model) {
+  currentModel = model;
   document.getElementById('dashboard').style.display = 'block';
   if (model.summary.period) document.getElementById('period').textContent = 'Zeitraum: ' + model.summary.period;
 
-  // KPIs
+  const p = getParams();
+  document.getElementById('inMsgs').value = p.msgs ?? '';
+  document.getElementById('inLeads').value = p.leads ?? '';
+  document.getElementById('inProfile').value = p.profile ?? '';
+
   const activeMonths = model.months.filter(m => m.imp > 200).length;
   document.getElementById('kpis').innerHTML = [
     ['Impressions', fmt(model.summary.impressions ?? model.totalImp), ''],
@@ -457,6 +574,7 @@ function render(model) {
   barChart(document.getElementById('chartFollowers'), model.months, m => m.fol, 'var(--series-2)', 'Neue Follower');
   lineChart(document.getElementById('chartER'), model.months, m => m.er, 'var(--series-3)', 'Engagement-Rate', fmtPct);
 
+  renderFunnel(model);
   renderPosts(model.posts);
   renderDemographics(model.demographics);
   renderInsights(model);
@@ -485,7 +603,6 @@ function renderPosts(posts) {
   </tr>`).join('');
 }
 document.querySelectorAll('#postsTable th').forEach(th => {
-  th.style.cursor = 'pointer';
   th.addEventListener('click', () => {
     const key = th.dataset.sort;
     sortState = { key, dir: sortState.key === key ? -sortState.dir : -1 };
@@ -496,8 +613,7 @@ document.querySelectorAll('#postsTable th').forEach(th => {
 });
 
 function renderDemographics(demo) {
-  const el = document.getElementById('demographics');
-  el.innerHTML = Object.entries(demo).map(([cat, rows]) => `
+  document.getElementById('demographics').innerHTML = Object.entries(demo).map(([cat, rows]) => `
     <div class="demo-block"><h3>${cat}</h3>
       ${rows.slice(0, 8).map(r => `
         <div class="demo-row">
@@ -516,8 +632,8 @@ function renderInsights(model) {
 
   const dead = M.filter(m => m.imp < 200).length;
   if (dead > 0 && M.length > 3) {
-    const activeImp = M.filter(m => m.imp >= 200);
-    const avgActive = activeImp.length ? Math.round(activeImp.reduce((s, m) => s + m.imp, 0) / activeImp.length) : 0;
+    const act = M.filter(m => m.imp >= 200);
+    const avgActive = act.length ? Math.round(act.reduce((s, m) => s + m.imp, 0) / act.length) : 0;
     out.push(['⏸️', `<strong>${dead} von ${M.length} Monaten</strong> waren praktisch inaktiv (&lt; 200 Impressions). In aktiven Monaten liegst du im Schnitt bei ${fmt(avgActive)} Impressions — Konsistenz ist dein größter Hebel.`]);
   }
 
@@ -525,16 +641,21 @@ function renderInsights(model) {
   if (withER.length >= 3) {
     const topER = [...withER].sort((a, b) => b.er - a.er)[0];
     const topImp = [...withER].sort((a, b) => b.imp - a.imp)[0];
-    out.push(['🏆', `Reichweiten-Sieger: „${topImp.title}" (${fmt(topImp.imp)} Impressions). Engagement-Sieger: „${topER.title}" (${fmtPct(topER.er)} ER). Reichweite zeigt, was der Algorithmus mag — ER zeigt, was deine Leute mögen.`]);
+    out.push(['🏆', `Reichweiten-Sieger: „${topImp.title}“ (${fmt(topImp.imp)} Impressions). Engagement-Sieger: „${topER.title}“ (${fmtPct(topER.er)} ER). Reichweite zeigt, was der Algorithmus mag — ER zeigt, was deine Leute mögen. Prüfe bei beiden in LinkedIn den Nicht-Follower-Anteil: das trennt Reichweiten-Formate von Vertrauens-Formaten.`]);
   }
 
   if (model.avgER != null) {
-    const bench = model.avgER >= 0.02 ? 'gut' : 'ausbaufähig — unter dem üblichen 2-%-Richtwert';
+    const bench = model.avgER >= 0.02 ? 'solide (≥ 2-%-Richtwert)' : 'ausbaufähig — unter dem üblichen 2-%-Richtwert';
     out.push(['💬', `Ø Engagement-Rate über alles: <strong>${fmtPct(model.avgER)}</strong> (${bench}). Posts mit persönlicher Geschichte oder klarer Meinung heben die ER meist am stärksten.`]);
   }
 
   const fPerImp = model.totalImp ? model.totalFol / model.totalImp * 1000 : null;
   if (fPerImp != null) out.push(['👥', `Du gewinnst ca. <strong>${fPerImp.toLocaleString('de-DE', { maximumFractionDigits: 1 })} Follower pro 1.000 Impressions</strong>. Mehr Reichweite zahlt also direkt auf Wachstum ein.`]);
+
+  if (model.summary.impressions && model.summary.reached) {
+    const freq = model.summary.impressions / model.summary.reached;
+    out.push(['🔁', `Jede erreichte Person sieht dich im Schnitt <strong>${freq.toLocaleString('de-DE', { maximumFractionDigits: 1 })}×</strong>. Unter 3× braucht Vertrauen lange — regelmäßiges Posten erhöht die Kontaktfrequenz bei denselben Leuten.`]);
+  }
 
   document.getElementById('insights').innerHTML = out.map(([icon, html]) =>
     `<div class="insight"><span class="icon">${icon}</span><span>${html}</span></div>`).join('');
@@ -561,23 +682,65 @@ async function loadFile(file) {
     if (!model.months.length) throw new Error('Keine Daten gefunden — ist das der LinkedIn-AggregateAnalytics-Export?');
     render(model);
     dz.style.display = 'none';
+    document.querySelector('.privacy').style.display = 'none';
   } catch (err) {
     alert('Datei konnte nicht gelesen werden: ' + err.message);
   }
 }
 
-// ---------- Demo data ----------
+function reviveRaw(raw) {
+  raw.daily.forEach(d => d.date = new Date(d.date));
+  raw.followersDaily.forEach(d => d.date = new Date(d.date));
+  raw.posts.forEach(p => { p.date = p.date ? new Date(p.date) : null; p.title = p.title || postSlug(p.url); });
+  return raw;
+}
 
 document.getElementById('demoBtn').addEventListener('click', e => {
   e.stopPropagation();
   fetch('demo-data.json').then(r => r.json()).then(raw => {
-    raw.daily.forEach(d => d.date = new Date(d.date));
-    raw.followersDaily.forEach(d => d.date = new Date(d.date));
-    raw.posts.forEach(p => p.date = p.date ? new Date(p.date) : null);
-    render(buildModel(raw));
+    render(buildModel(reviveRaw(raw)));
     dz.style.display = 'none';
+    document.querySelector('.privacy').style.display = 'none';
   });
 });
+
+// ---------- Privates Deployment: verschlüsselte Daten + Passwort ----------
+// Liegt neben der Seite eine data.enc.json (AES-GCM, Key aus Passwort via PBKDF2),
+// wird das Passwort-Overlay gezeigt und nach Entsperren direkt gerendert.
+
+async function decrypt(encObj, password) {
+  const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const keyMaterial = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: b64(encObj.salt), iterations: 200000, hash: 'SHA-256' },
+    keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(encObj.iv) }, key, b64(encObj.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+
+(async () => {
+  try {
+    const res = await fetch('data.enc.json');
+    if (!res.ok) return;
+    const encObj = await res.json();
+    const lock = document.getElementById('lock');
+    lock.style.display = 'grid';
+    const tryUnlock = async () => {
+      const pw = document.getElementById('pw').value;
+      try {
+        const raw = await decrypt(encObj, pw);
+        lock.style.display = 'none';
+        render(buildModel(reviveRaw(raw)));
+        dz.style.display = 'none';
+        document.querySelector('.privacy').style.display = 'none';
+      } catch {
+        document.getElementById('pwErr').textContent = 'Falsches Passwort.';
+      }
+    };
+    document.getElementById('unlockBtn').addEventListener('click', tryUnlock);
+    document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+  } catch { /* kein privates Deployment */ }
+})();
 </script>
 </body>
 </html>
