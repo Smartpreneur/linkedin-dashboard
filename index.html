@@ -922,7 +922,7 @@ function renderPosts() {
   } else {
     note.style.display = 'none';
     const nAll = currentModel.posts.length;
-    heading.innerHTML = `Top-Beiträge <span style="font-weight:400;color:var(--text-secondary)">(${nAll >= 50 ? '50 von 50 — gedeckelt' : nAll})</span>`;
+    heading.innerHTML = `Top-Beiträge <span style="font-weight:400;color:var(--text-secondary)">(${nAll})</span> <span style="font-weight:400;font-size:0.85rem;cursor:help" title="Der LinkedIn-Export enthält maximal die 50 reichweitenstärksten Beiträge des Zeitraums.${nAll >= 50 ? ' Dieses Maximum ist erreicht — schwächere Beiträge fehlen in der Liste.' : ''}">ⓘ</span>`;
   }
 
   // Abdeckung: wie viele der Gesamt-Impressions stecken in den Top 50?
