@@ -117,6 +117,18 @@
   .seg button + button { border-left: 1px solid var(--baseline); }
   .seg button:hover { color: var(--accent); }
   .seg button.active { background: var(--accent); color: #fff; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    font: inherit; font-size: 0.8rem; font-weight: 600;
+    padding: 6px 14px; border-radius: 999px;
+    border: 1px solid var(--baseline); background: var(--surface-1);
+    color: var(--text-secondary); cursor: pointer;
+    opacity: 0.45; transition: opacity .12s, border-color .12s;
+  }
+  .chip .swatch { width: 10px; height: 10px; border-radius: 3px; }
+  .chip.active { opacity: 1; border-color: var(--text-secondary); color: var(--text-primary); }
+  .chip:hover { opacity: 1; }
   .tile .delta.up { color: var(--delta-good); }
   .tile .delta.down { color: #c0392b; }
 
@@ -285,26 +297,24 @@
   <div class="kpis" id="kpis"></div>
 
   <div class="card">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
-      <div style="flex:1;min-width:0">
-        <h2>Aktivität: Impressions, Follower &amp; Engagement</h2>
-        <p class="desc" style="margin-bottom:10px">Linke Achse: Impressions. Rechte Achse: neue Follower. Engagement-Rate als Linie (eigene Skala, Werte im Tooltip). Klick auf einen Balken filtert die Beiträge darunter.</p>
-      </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px">
+      <h2>Performance von Inhalten</h2>
       <div class="seg" id="cumSeg" style="flex-shrink:0">
         <button data-cum="0" class="active">Normal</button>
         <button data-cum="1">Kumulativ</button>
       </div>
     </div>
-    <div class="legend" id="seriesLegend">
-      <label class="item" style="cursor:pointer"><input type="checkbox" data-series="imp" checked><span class="swatch" style="background:var(--series-1)"></span>Impressions (linke Achse)</label>
-      <label class="item" style="cursor:pointer"><input type="checkbox" data-series="fol" checked><span class="swatch" style="background:var(--series-2)"></span>Neue Follower (rechte Achse)</label>
-      <label class="item" style="cursor:pointer" title="Engagement = Reaktionen + Kommentare + geteilte Beiträge — Aufschlüsselung steckt nicht im Export"><input type="checkbox" data-series="er" checked><span class="swatch" style="background:var(--series-3)"></span>Engagement-Rate</label>
+    <div class="chips" id="seriesLegend">
+      <button class="chip active" data-series="imp"><span class="swatch" style="background:var(--series-1)"></span>Impressions</button>
+      <button class="chip active" data-series="fol"><span class="swatch" style="background:var(--series-2)"></span>Neue Follower</button>
+      <button class="chip active" data-series="er" title="Engagement = Reaktionen + Kommentare + geteilte Beiträge · Engagement-Rate im Tooltip"><span class="swatch" style="background:var(--series-3)"></span>Engagements</button>
     </div>
     <div class="chart-wrap"><div id="chartCombined"></div></div>
   </div>
 
   <div class="card">
-    <h2 id="postsHeading">Top-Beiträge</h2>
+    <h2 id="postsHeading">Top-Beiträge (max. 50)</h2>
+    <div id="coverage" style="margin:10px 0 14px"></div>
     <p class="desc">Standard: nach Impressions sortiert — Klick auf eine Spalte sortiert um. ER ≥ 3&nbsp;% ist grün markiert. Reaktionen/Kommentare/Saves pro Beitrag stecken leider nicht im Aggregate-Export — die zeigt LinkedIn nur pro Beitrag in der App (Beitrag → Analytics ansehen); dort siehst du auch den Follower- vs. Nicht-Follower-Anteil.</p>
     <div class="selection-note" id="selectionNote">
       <span id="selectionLabel"></span>
@@ -624,8 +634,8 @@ function renderCombined() {
     : `<rect x="${x}" y="${y}" width="${Math.max(w, 1)}" height="${base - y}" fill="${fill}" ${extra}/>`;
 
   const show = state.show;
-  const maxEr = Math.max(0.005, ...bins.map(b => b.er).filter(v => v != null));
-  const yEr = v => P.t + plotH * (1 - v / maxEr);
+  const maxEng = niceMax(Math.max(1, ...bins.map(b => b.eng)));
+  const yEng = v => P.t + plotH * (1 - v / maxEng);
 
   let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="Impressions (linke Achse), neue Follower (rechte Achse), Engagement-Rate">`;
   for (const f of [0.5, 1]) {
@@ -638,15 +648,13 @@ function renderCombined() {
   s += `<text x="${W - P.r + 8}" y="${base + 3}" text-anchor="start" font-size="10" fill="var(--text-muted)">0</text>`;
 
   const erLine = () => {
-    let d = '', started = false;
+    let d = '';
     bins.forEach((b, i) => {
-      if (b.er == null) { started = false; return; }
-      d += (started ? 'L' : 'M') + xc(i).toFixed(1) + ',' + yEr(b.er).toFixed(1) + ' ';
-      started = true;
+      d += (i ? 'L' : 'M') + xc(i).toFixed(1) + ',' + yEng(b.eng).toFixed(1) + ' ';
     });
     let out = `<path d="${d}" fill="none" stroke="var(--series-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
     if (n <= 60) bins.forEach((b, i) => {
-      if (b.er != null) out += `<circle cx="${xc(i)}" cy="${yEr(b.er)}" r="3" fill="var(--series-3)" stroke="var(--surface-1)" stroke-width="1.5"/>`;
+      out += `<circle cx="${xc(i)}" cy="${yEng(b.eng)}" r="3" fill="var(--series-3)" stroke="var(--surface-1)" stroke-width="1.5"/>`;
     });
     return out;
   };
@@ -774,9 +782,10 @@ document.querySelectorAll('#granSeg button').forEach(btn => {
     refreshBins();
   });
 });
-document.querySelectorAll('#seriesLegend input').forEach(cb => {
-  cb.addEventListener('change', () => {
-    state.show[cb.dataset.series] = cb.checked;
+document.querySelectorAll('#seriesLegend .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    chip.classList.toggle('active');
+    state.show[chip.dataset.series] = chip.classList.contains('active');
     renderCombined();
   });
 });
@@ -887,7 +896,24 @@ function renderPosts() {
     }
   } else {
     note.style.display = 'none';
-    heading.textContent = 'Top-Beiträge';
+    heading.textContent = 'Top-Beiträge (max. 50)';
+  }
+
+  // Abdeckung: wie viele der Gesamt-Impressions stecken in den Top 50?
+  const covEl = document.getElementById('coverage');
+  const topImp = currentModel.posts.reduce((s, p) => s + (p.imp || 0), 0);
+  const totalImp = currentModel.summary.impressions ?? currentModel.totalImp;
+  if (totalImp > 0 && covEl) {
+    const cov = Math.min(1, topImp / totalImp);
+    covEl.innerHTML = `
+      <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-secondary);margin-bottom:4px">
+        <span>Top-50-Beiträge: ${fmt(topImp)} Impressions</span>
+        <span>Gesamt: ${fmt(totalImp)}</span>
+      </div>
+      <div class="bar-track" style="height:10px;background:var(--grid);border-radius:5px;overflow:hidden">
+        <div style="height:100%;width:${(cov * 100).toFixed(1)}%;background:var(--series-1);border-radius:5px"></div>
+      </div>
+      <div style="font-size:0.74rem;color:var(--text-muted);margin-top:4px">${fmtPct(cov)} deiner Impressions sind hier sichtbar${cov < 0.95 ? ' — der Rest stammt aus Beiträgen (oder Kommentaren), die es nicht in die Top 50 geschafft haben' : ' — die Liste deckt praktisch alles ab'}</div>`;
   }
 
   const sorted = [...posts].sort((a, b) => {
