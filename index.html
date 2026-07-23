@@ -409,7 +409,7 @@
   </div>
 </div>
 
-<footer>Alle Auswertungen laufen lokal im Browser · Ein Tool von <a href="https://kuehn.tech" style="color:var(--text-primary);font-weight:700">Kuehn<span style="color:var(--kuehn)">.Tech</span></a></footer>
+<footer>Alle Auswertungen laufen lokal im Browser · Anonyme Aufrufzählung ohne Cookies · Ein Tool von <a href="https://kuehn.tech" style="color:var(--text-primary);font-weight:700">Kuehn<span style="color:var(--kuehn)">.Tech</span></a></footer>
 </div>
 
 <script>
@@ -1220,8 +1220,10 @@ async function loadFile(file) {
     }
     const model = buildModel(parseWorkbook(wb));
     if (!model.months.length) throw new Error('Die Tabellenblätter sind vorhanden, enthalten aber keine lesbaren Tagesdaten.');
+    track('file_loaded');
     render(model);
     hideIntro();
+    document.getElementById('demoExit')?.remove();
   } catch (err) {
     alert('Datei konnte nicht gelesen werden: ' + err.message);
   }
@@ -1234,11 +1236,32 @@ function reviveRaw(raw) {
   return raw;
 }
 
+// Anonyme Nutzungszählung (nur Ereignis-Typ, keine Cookies, keine Daten, kein localhost)
+function track(event) {
+  if (location.hostname === 'localhost' || location.protocol === 'file:' || /^192\.168\./.test(location.hostname)) return;
+  try {
+    fetch('https://kuehn.tech/api/linkedin-track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event, referrer: document.referrer || null }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch { /* nie den Nutzer stören */ }
+}
+track('page_view');
+
 document.getElementById('demoBtn').addEventListener('click', e => {
   e.stopPropagation();
+  track('demo_view');
   fetch('demo-data.json').then(r => r.json()).then(raw => {
     render(buildModel(reviveRaw(raw)));
     hideIntro();
+    // Rücksprung aus der Demo anbieten
+    if (!document.getElementById('demoExit')) {
+      document.querySelector('.toolbar').insertAdjacentHTML('beforeend',
+        `<button id="demoExit" class="pill-like" type="button" style="font:inherit;font-size:0.8rem;font-weight:600;padding:7px 16px;border-radius:999px;border:1px solid var(--baseline);background:var(--surface-1);color:var(--text-secondary);cursor:pointer;margin-left:auto">✕ Demo beenden</button>`);
+      document.getElementById('demoExit').addEventListener('click', () => location.reload());
+    }
   });
 });
 
@@ -1411,6 +1434,7 @@ document.getElementById('mailBtn').addEventListener('click', async () => {
     if (!res.ok) throw new Error((await res.json()).error || res.statusText);
     status.textContent = '✅ Unterwegs! Schau in dein Postfach (ggf. auch im Spam).';
     document.getElementById('mailInput').value = '';
+    track('mail_sent');
   } catch (e) {
     status.textContent = 'Versand fehlgeschlagen: ' + e.message;
   }
