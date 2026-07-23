@@ -934,14 +934,7 @@ function renderPosts() {
     const nAll = currentModel.posts.length;
     covEl.innerHTML = `
       <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-secondary);margin-bottom:4px">
-        <span>Beiträge in der Liste: ${nAll} / 50</span>
-        <span>${nAll >= 50 ? 'Maximum erreicht — ältere/schwächere Beiträge fehlen' : 'alle erfassten Beiträge sichtbar'}</span>
-      </div>
-      <div class="bar-track" style="height:6px;background:var(--grid);border-radius:3px;overflow:hidden;margin-bottom:10px">
-        <div style="height:100%;width:${(nAll / 50 * 100).toFixed(0)}%;background:var(--series-2);border-radius:3px"></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-secondary);margin-bottom:4px">
-        <span>Impressions dieser Beiträge: ${fmt(topImp)}</span>
+        <span>Impressions der Top-${nAll >= 50 ? '50' : nAll}-Beiträge: ${fmt(topImp)}</span>
         <span>Gesamt: ${fmt(totalImp)}</span>
       </div>
       <div class="bar-track" style="height:10px;background:var(--grid);border-radius:5px;overflow:hidden">
