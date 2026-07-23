@@ -107,6 +107,15 @@
   .toolbar input[type="number"] { width: 84px; }
   #customControls { display: none; align-items: center; gap: 8px; flex-wrap: wrap; }
   #customControls .or { font-size: 0.74rem; color: var(--text-muted); }
+  .seg { display: inline-flex; border: 1px solid var(--baseline); border-radius: 10px; overflow: hidden; }
+  .seg button {
+    font: inherit; font-size: 0.82rem; font-weight: 600;
+    padding: 7px 16px; border: none; background: none;
+    color: var(--text-secondary); cursor: pointer;
+  }
+  .seg button + button { border-left: 1px solid var(--baseline); }
+  .seg button:hover { color: var(--accent); }
+  .seg button.active { background: var(--accent); color: #fff; }
   .tile .delta.up { color: var(--delta-good); }
   .tile .delta.down { color: #c0392b; }
 
@@ -231,12 +240,12 @@
       <input type="number" id="customBack" min="2" max="730" placeholder="Tage…" title="So viele Tage zurück">
     </div>
     <div class="tb-group">
-      <label for="granSelect">Ansicht</label>
-      <select id="granSelect">
-        <option value="daily" selected>Tag</option>
-        <option value="weekly">Woche</option>
-        <option value="monthly">Monat</option>
-      </select>
+      <label>Ansicht</label>
+      <div class="seg" id="granSeg">
+        <button data-gran="daily" class="active">Tag</button>
+        <button data-gran="weekly">Woche</button>
+        <button data-gran="monthly">Monat</button>
+      </div>
     </div>
   </div>
 
@@ -252,6 +261,7 @@
     <div class="chart-wrap"><div id="chartCombined"></div></div>
     <div class="legend" style="margin-top:14px">
       <span class="item"><span class="swatch" style="background:var(--series-3)"></span>Engagement-Rate</span>
+      <span class="item" style="color:var(--text-muted)">= (Reaktionen + Kommentare + geteilte Beiträge) ÷ Impressions — die Aufschlüsselung nach Typ steckt nicht im Export</span>
     </div>
     <div class="chart-wrap"><div id="chartER"></div></div>
   </div>
@@ -672,10 +682,14 @@ function applyCustom() {
 for (const id of ['customStart', 'customEnd', 'customBack']) {
   document.getElementById(id).addEventListener('change', applyCustom);
 }
-document.getElementById('granSelect').addEventListener('change', e => {
-  state.gran = e.target.value;
-  state.selected = null;
-  refreshBins();
+document.querySelectorAll('#granSeg button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#granSeg button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.gran = btn.dataset.gran;
+    state.selected = null;
+    refreshBins();
+  });
 });
 document.getElementById('clearSelection').addEventListener('click', () => {
   state.selected = null;
@@ -725,10 +739,10 @@ function renderKpis(range) {
   document.getElementById('kpis').innerHTML = [
     ['Impressions', fmt(cur.imp), deltaHtml(cur.imp, prev?.imp)],
     ['Neue Follower', fmt(cur.fol), deltaHtml(cur.fol, prev?.fol)],
-    ['Engagements', fmt(cur.eng), deltaHtml(cur.eng, prev?.eng)],
+    ['Engagements ⓘ', fmt(cur.eng), deltaHtml(cur.eng, prev?.eng)],
     ['Ø Engagement-Rate', fmtPct(curER), prevER != null ? deltaHtml(curER, prevER) : '<div class="delta"></div>'],
     ['Follower gesamt', fmt(model.followersTotal), `<div class="delta">Stand Export-Ende</div>`],
-  ].map(([l, v, d]) => `<div class="tile"><div class="label">${l}</div><div class="value">${v}</div>${d}</div>`).join('');
+  ].map(([l, v, d]) => `<div class="tile"${l.includes('ⓘ') ? ' title="Engagement = Summe aus Reaktionen, Kommentaren und geteilten Beiträgen (LinkedIn-Definition). Die Aufschlüsselung nach Typ liefert der Export leider nicht — die zeigt LinkedIn nur pro Beitrag in der App." style="cursor:help"' : ''}><div class="label">${l}</div><div class="value">${v}</div>${d}</div>`).join('');
   document.getElementById('period').textContent = rangeLabel ? 'Zeitraum: ' + rangeLabel : '';
 }
 
@@ -747,8 +761,19 @@ function renderPosts() {
     const e0 = new Date(b.rangeEnd); e0.setHours(23, 59, 59, 999);
     posts = posts.filter(p => p.date && p.date >= s0 && p.date <= e0);
     note.style.display = 'flex';
-    document.getElementById('selectionLabel').innerHTML = `Gefiltert auf <strong>&nbsp;${b.longLabel}&nbsp;</strong> — ${posts.length} Beitrag${posts.length === 1 ? '' : 'e'} in den Top 50`;
-    heading.textContent = 'Beiträge: ' + b.longLabel;
+    if (posts.length) {
+      document.getElementById('selectionLabel').innerHTML = `Gefiltert auf <strong>&nbsp;${b.longLabel}&nbsp;</strong> — ${posts.length} Beitrag${posts.length === 1 ? '' : 'e'} in den Top 50`;
+      heading.textContent = 'Beiträge: ' + b.longLabel;
+    } else {
+      // Impressions laufen nach der Veröffentlichung tagelang weiter — zeige die wahrscheinlichen Treiber
+      const lookback = new Date(s0); lookback.setDate(lookback.getDate() - 14);
+      posts = currentModel.posts
+        .filter(p => p.date && p.date < s0 && p.date >= lookback)
+        .sort((a, b2) => b2.date - a.date)
+        .slice(0, 5);
+      document.getElementById('selectionLabel').innerHTML = `<strong>${b.longLabel}:</strong>&nbsp;kein neuer Beitrag veröffentlicht — Impressions stammen vom Nachlauf. Wahrscheinliche Treiber (bis 14 Tage davor):`;
+      heading.textContent = 'Wahrscheinliche Treiber: ' + b.longLabel;
+    }
   } else {
     note.style.display = 'none';
     heading.textContent = 'Top-Beiträge';
