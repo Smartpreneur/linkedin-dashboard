@@ -359,7 +359,7 @@
 
   <div class="card" id="mailCard">
     <h2>Auswertung per E-Mail erhalten</h2>
-    <p class="desc">Wir schicken dir deine berechneten Kennzahlen (KPIs, Top-Beiträge, Konsistenz, Konvertierung) als übersichtliche Mail. Übertragen werden nur diese Ergebnisse — deine Export-Rohdaten verlassen deinen Browser nicht.</p>
+    <p class="desc">Wir schicken dir deine berechneten Kennzahlen (KPIs, Performance-Grafik, Top-Beiträge, Konsistenz, Konvertierung) als übersichtliche Mail — Basis ist der oben eingestellte Zeitraum. Übertragen werden nur diese Ergebnisse, deine Export-Rohdaten verlassen deinen Browser nicht. Max. 2 Mails pro Tag; E-Mail-Adresse wird nur für Versand und Missbrauchsschutz gespeichert.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
       <input type="email" id="mailInput" placeholder="deine@email.de" style="flex:1;min-width:220px;font:inherit;padding:10px 14px;border:1px solid var(--baseline);border-radius:10px">
       <input type="text" id="mailWebsite" style="display:none" tabindex="-1" autocomplete="off">
@@ -1036,8 +1036,20 @@ for (const [id, key] of [['inMsgs', 'msgs'], ['inLeads', 'leads'], ['inProfile',
 // ---------- Render ----------
 
 function render(model) {
+  const isNewModel = currentModel !== model;
   currentModel = model;
   document.getElementById('dashboard').style.display = 'block';
+
+  if (isNewModel && model.days.length) {
+    // Standard: die längste hochgeladene Periode anzeigen — Granularität passend zur Spanne
+    const spanDays = Math.round((model.days[model.days.length - 1].date - model.days[0].date) / 86400000) + 1;
+    state.rangeMode = 'all';
+    state.gran = spanDays > 180 ? 'monthly' : spanDays > 31 ? 'weekly' : 'daily';
+    state.selected = null;
+    document.getElementById('rangeSelect').value = 'all';
+    document.getElementById('customControls').style.display = 'none';
+    document.querySelectorAll('#granSeg button').forEach(b => b.classList.toggle('active', b.dataset.gran === state.gran));
+  }
 
   const p = getParams();
   document.getElementById('inMsgs').value = p.msgs ?? '';
@@ -1240,8 +1252,37 @@ function buildSummary() {
     streak: streakVals[1] ? parseInt(streakVals[1]) : null,
     impPerLead: p.leads > 0 ? impPerMonth / p.leads : null,
     totalConv: p.leads > 0 && impPerMonth > 0 ? p.leads / impPerMonth : null,
+    postsCount: m.posts.length,
+    coverage: (m.summary.impressions ?? m.totalImp) > 0
+      ? Math.min(1, m.posts.reduce((s, x) => s + (x.imp || 0), 0) / (m.summary.impressions ?? m.totalImp)) : null,
     topPosts,
   };
+}
+
+// Chart-SVG → PNG (CSS-Variablen müssen für den Standalone-Render aufgelöst werden)
+async function chartToPng() {
+  const svgEl = document.querySelector('#chartCombined svg');
+  if (!svgEl) return null;
+  try {
+    const cs = getComputedStyle(document.documentElement);
+    let src = svgEl.outerHTML.replace(/var\((--[a-z0-9-]+)\)/g, (_, v) => cs.getPropertyValue(v).trim() || '#888');
+    if (!src.includes('xmlns=')) src = src.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ');
+    src = src.replace(/font-family:\s*inherit;?/g, '').replace('<svg ', '<svg style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif" ');
+    const vb = svgEl.viewBox.baseVal;
+    const scale = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = vb.width * scale; canvas.height = vb.height * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = cs.getPropertyValue('--surface-1').trim() || '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const img = new Image();
+    await new Promise((ok, err) => {
+      img.onload = ok; img.onerror = err;
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(src);
+    });
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/png');
+  } catch { return null; }
 }
 
 document.getElementById('mailBtn').addEventListener('click', async () => {
@@ -1254,7 +1295,7 @@ document.getElementById('mailBtn').addEventListener('click', async () => {
     const res = await fetch('https://kuehn.tech/api/linkedin-report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, website: document.getElementById('mailWebsite').value, summary: buildSummary() }),
+      body: JSON.stringify({ email, website: document.getElementById('mailWebsite').value, summary: buildSummary(), chartPng: await chartToPng() }),
     });
     if (!res.ok) throw new Error((await res.json()).error || res.statusText);
     status.textContent = '✅ Unterwegs! Schau in dein Postfach (ggf. auch im Spam).';
