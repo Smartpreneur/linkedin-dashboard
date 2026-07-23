@@ -185,6 +185,35 @@
   #dashboard { display: none; }
   footer { color: var(--text-muted); font-size: 0.75rem; text-align: center; margin-top: 36px; }
 
+  .report-btn {
+    font: inherit; font-size: 0.82rem; font-weight: 600;
+    padding: 8px 18px; border-radius: 999px;
+    border: none; background: var(--accent); color: #fff; cursor: pointer;
+    margin-left: auto;
+  }
+  .report-btn:hover { filter: brightness(1.08); }
+
+  /* Konsistenz */
+  .streak-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .streak-tile { border: 1px solid var(--grid); border-radius: 12px; padding: 12px 14px; }
+  .streak-tile .sl { font-size: 0.72rem; color: var(--text-secondary); }
+  .streak-tile .sv { font-size: 1.3rem; font-weight: 700; }
+  .weekbar { display: flex; gap: 3px; flex-wrap: wrap; margin: 10px 0 6px; }
+  .weekbar .wk { width: 14px; height: 14px; border-radius: 4px; background: var(--grid); }
+  .weekbar .wk.on { background: var(--series-1); }
+  .weekbar .wk.now { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .wk-caption { font-size: 0.72rem; color: var(--text-muted); }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .toolbar, #dropzone, .privacy, .report-btn, .funnel-inputs, .selection-note, footer { display: none !important; }
+    .card, .tile { box-shadow: none; break-inside: avoid; }
+    .chart-wrap { overflow: visible; }
+    a { color: inherit; text-decoration: none; }
+    #reportMeta { display: block !important; }
+  }
+  #reportMeta { display: none; font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 16px; }
+
   #lock { position: fixed; inset: 0; background: var(--page); display: none; place-items: center; z-index: 50; }
   #lock .box {
     background: var(--surface-1); border: 1px solid var(--border);
@@ -247,7 +276,9 @@
         <button data-gran="monthly">Monat</button>
       </div>
     </div>
+    <button class="report-btn" id="reportBtn" type="button">Report als PDF ⬇</button>
   </div>
+  <div id="reportMeta"></div>
 
   <div class="kpis" id="kpis"></div>
 
@@ -307,6 +338,15 @@
     <h2>Wer dir folgt</h2>
     <p class="desc">Demografie deiner Betrachter:innen — passt die Audience zu deinem Angebot?</p>
     <div class="demo-grid" id="demographics"></div>
+  </div>
+
+  <div class="card">
+    <h2>Konsistenz</h2>
+    <p class="desc">Eine Woche zählt als aktiv, wenn ein Top-50-Beitrag veröffentlicht wurde oder deutliche Impressions liefen (Näherung — der Export kennt nicht jede Veröffentlichung).</p>
+    <div class="streak-grid" id="streakTiles"></div>
+    <div class="weekbar" id="weekbar"></div>
+    <div class="wk-caption" id="weekbarCaption"></div>
+    <div id="consistencyInsight" style="margin-top:12px"></div>
   </div>
 
   <div class="card">
@@ -911,8 +951,91 @@ function render(model) {
   refreshBins();
   renderFunnel(model);
   renderDemographics(model.demographics);
+  renderConsistency(model);
   renderInsights(model);
 }
+
+// ---------- Konsistenz (konservativ: nur klare Fälle bewerten) ----------
+
+function renderConsistency(model) {
+  if (!model.days.length) return;
+  // Wochen (Mo-So) über den ganzen Datenzeitraum
+  const first = new Date(model.days[0].date);
+  first.setDate(first.getDate() - ((first.getDay() + 6) % 7));
+  const last = model.days[model.days.length - 1].date;
+  const weeks = [];
+  for (let s = new Date(first); s <= last; s.setDate(s.getDate() + 7)) {
+    const ws = new Date(s), we = new Date(s); we.setDate(we.getDate() + 6);
+    weeks.push({ start: ws, end: we, imp: 0, posted: false });
+  }
+  for (const d of model.days) {
+    const w = weeks[Math.floor((d.date - first) / 604800000)];
+    if (w) w.imp += d.imp;
+  }
+  for (const p of model.posts) {
+    if (!p.date) continue;
+    const w = weeks[Math.floor((p.date - first) / 604800000)];
+    if (w) w.posted = true;
+  }
+  // Aktiv = Beitrag veröffentlicht ODER Impressions deutlich über Grundrauschen.
+  // Schwelle datengetrieben: Median der Wochen mit Impressions > 0, mind. 100.
+  const impWeeks = weeks.map(w => w.imp).filter(v => v > 0).sort((a, b) => a - b);
+  const median = impWeeks.length ? impWeeks[Math.floor(impWeeks.length / 2)] : 0;
+  const threshold = Math.max(100, median * 0.5);
+  weeks.forEach(w => w.active = w.posted || w.imp >= threshold);
+
+  const nActive = weeks.filter(w => w.active).length;
+  // Aktueller Streak (von hinten)
+  let streak = 0;
+  for (let i = weeks.length - 1; i >= 0 && weeks[i].active; i--) streak++;
+  // Längster Streak + längste Pause
+  let longest = 0, cur = 0, longestGap = 0, curGap = 0;
+  for (const w of weeks) {
+    if (w.active) { cur++; longest = Math.max(longest, cur); curGap = 0; }
+    else { curGap++; longestGap = Math.max(longestGap, curGap); cur = 0; }
+  }
+
+  document.getElementById('streakTiles').innerHTML = [
+    ['Aktive Wochen', `${nActive} / ${weeks.length}`],
+    ['Aktueller Streak', `${streak} Wo.`],
+    ['Längster Streak', `${longest} Wo.`],
+    ['Längste Pause', `${longestGap} Wo.`],
+  ].map(([l, v]) => `<div class="streak-tile"><div class="sl">${l}</div><div class="sv">${v}</div></div>`).join('');
+
+  document.getElementById('weekbar').innerHTML = weeks.map((w, i) =>
+    `<span class="wk ${w.active ? 'on' : ''} ${i === weeks.length - 1 ? 'now' : ''}" title="${fmtDate(w.start)} – ${fmtDate(w.end)}: ${w.posted ? 'Beitrag veröffentlicht' : w.active ? fmt(w.imp) + ' Impressions' : 'inaktiv'}"></span>`).join('');
+  document.getElementById('weekbarCaption').textContent = `${fmtDate(weeks[0].start)} bis ${fmtDate(weeks[weeks.length - 1].end)} — blau = aktive Woche, Rahmen = aktuelle Woche`;
+
+  // Muster-Einordnung: nur bei ausreichender Datenlage urteilen
+  const el = document.getElementById('consistencyInsight');
+  if (weeks.length < 12) {
+    el.innerHTML = `<div class="insight"><span>ℹ️ Noch zu wenig Historie für eine Muster-Aussage (unter 12 Wochen). Sammle weiter — ab ~3 Monaten wird das Bild belastbar.</span></div>`;
+    return;
+  }
+  const rate = nActive / weeks.length;
+  const recent12 = weeks.slice(-12);
+  const recentRate = recent12.filter(w => w.active).length / recent12.length;
+  let msg;
+  // Pause vor dem aktuellen Streak ermitteln (Comeback-Erkennung)
+  let gapBeforeStreak = 0;
+  for (let i = weeks.length - 1 - streak; i >= 0 && !weeks[i].active; i--) gapBeforeStreak++;
+  if (streak >= 3 && gapBeforeStreak >= 4) msg = `🔄 Comeback läuft: Nach ${gapBeforeStreak} Wochen Pause bist du seit <strong>${streak} Wochen</strong> wieder aktiv. Die kritische Phase ist jetzt — Woche ${streak + 1} entscheidet, ob daraus ein Muster wird. Historischer Bestwert: ${longest} Wochen am Stück.`;
+  else if (recentRate >= 0.9 && rate < 0.6) msg = `🔥 Muster gebrochen — im Guten: Historisch warst du in ${Math.round(rate * 100)} % der Wochen aktiv, in den letzten 12 Wochen sind es ${Math.round(recentRate * 100)} %. Halte genau dieses Tempo, der Algorithmus belohnt es gerade.`;
+  else if (recentRate < rate - 0.25) msg = `⚠️ Muster gebrochen: Historisch ${Math.round(rate * 100)} % aktive Wochen, zuletzt nur ${Math.round(recentRate * 100)} %. Das ist die Sorte Lücke, die dich in den inaktiven Monaten Reichweite gekostet hat.`;
+  else if (rate >= 0.8) msg = `✅ Stabiles Muster: ${Math.round(rate * 100)} % aktive Wochen über die gesamte Historie. Konsistenz ist bei dir kein Engpass.`;
+  else msg = `📊 Dein Muster ist wechselhaft (${Math.round(rate * 100)} % aktive Wochen, längste Pause ${longestGap} Wochen). Die ehrlichste Kennzahl zum Verbessern: den aktuellen Streak (${streak} Wo.) einfach nicht abreißen lassen.`;
+  el.innerHTML = `<div class="insight"><span>${msg}</span></div>`;
+}
+
+// ---------- Report (PDF via Druckdialog, rein clientseitig) ----------
+
+document.getElementById('reportBtn').addEventListener('click', () => {
+  const range = currentModel ? getRange(currentModel) : {};
+  const rl = range.start ? `${fmtDate(range.start)} – ${fmtDate(range.end)}` : '';
+  document.getElementById('reportMeta').innerHTML =
+    `<strong>LinkedIn Analytics Report</strong> · Zeitraum ${rl} · erstellt am ${fmtDate(new Date())} · linkedin-dashboard von kuehn.tech`;
+  window.print();
+});
 
 function renderDemographics(demo) {
   document.getElementById('demographics').innerHTML = Object.entries(demo).map(([cat, rows]) => `
