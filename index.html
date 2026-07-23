@@ -290,7 +290,6 @@
       </div>
     </div>
     <button class="report-btn" id="reportBtn" type="button">Report als PDF ⬇</button>
-    <button class="report-btn" id="reloadBtn" type="button" style="background:none;color:var(--accent);border:1px solid var(--accent);margin-left:8px" title="Neuen LinkedIn-Export laden — ersetzt die aktuelle Ansicht">⟳ Neue Daten</button>
   </div>
   <div id="reportMeta"></div>
 
@@ -313,7 +312,7 @@
   </div>
 
   <div class="card">
-    <h2 id="postsHeading">Top-Beiträge <span style="font-weight:400;color:var(--text-secondary)">(max. 50)</span></h2>
+    <h2 id="postsHeading">Top-Beiträge</h2>
     <div id="coverage" style="margin:10px 0 14px"></div>
     <p class="desc">Standard: nach Impressions sortiert — Klick auf eine Spalte sortiert um. ER ≥ 3&nbsp;% ist grün markiert. Reaktionen/Kommentare/Saves pro Beitrag stecken leider nicht im Aggregate-Export — die zeigt LinkedIn nur pro Beitrag in der App (Beitrag → Analytics ansehen); dort siehst du auch den Follower- vs. Nicht-Follower-Anteil.</p>
     <div class="selection-note" id="selectionNote">
@@ -333,20 +332,20 @@
   </div>
 
   <div class="card">
-    <h2>Dein Funnel: von Impression zu Anfrage</h2>
-    <p class="desc">LinkedIn misst keine Konvertierung — ergänze deine eigenen Zahlen (werden nur lokal in deinem Browser gespeichert), und das Dashboard rechnet dir den kompletten Funnel durch.</p>
-    <div class="funnel-inputs">
-      <div><label for="inMsgs">Ø Nachrichten / Anfragen pro Monat</label><input type="number" id="inMsgs" min="0" step="1" placeholder="z. B. 4"></div>
-      <div><label for="inLeads">Ø qualifizierte Leads pro Monat</label><input type="number" id="inLeads" min="0" step="1" placeholder="z. B. 1"></div>
-      <div><label for="inProfile">Ø Profilaufrufe pro Monat (optional)</label><input type="number" id="inProfile" min="0" step="1" placeholder="aus LinkedIn Analytics"></div>
-    </div>
-    <div id="funnel"></div>
-  </div>
-
-  <div class="card">
     <h2>Wer dir folgt</h2>
     <p class="desc">Demografie deiner Betrachter:innen — passt die Audience zu deinem Angebot?</p>
     <div class="demo-grid" id="demographics"></div>
+  </div>
+
+  <div class="card">
+    <h2>Konvertierung: von Impression zu Anfrage</h2>
+    <p class="desc">LinkedIn misst keine Konvertierung — ergänze deine eigenen Zahlen (werden nur lokal in deinem Browser gespeichert), und das Dashboard rechnet dir den kompletten Funnel durch.</p>
+    <div class="funnel-inputs">
+      <div><label for="inProfile">Profilaufrufe pro Monat</label><input type="number" id="inProfile" min="0" step="1" placeholder="z. B. 120"><div style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">Abrufbar in LinkedIn: Profil &rarr; Analytics &rarr; Profilaufrufe</div></div>
+      <div><label for="inMsgs">Nachrichten / Anfragen pro Monat</label><input type="number" id="inMsgs" min="0" step="1" placeholder="z. B. 4"><div style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">Deine Sch&auml;tzung: eingehende DMs mit Bezug zu deinem Angebot</div></div>
+      <div><label for="inLeads">Qualifizierte Kundenanfragen (Leads) pro Monat</label><input type="number" id="inLeads" min="0" step="1" placeholder="z. B. 1"><div style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">Deine Sch&auml;tzung: Anfragen, aus denen ein Gespr&auml;ch/Angebot wurde</div></div>
+    </div>
+    <div id="funnel"></div>
   </div>
 
   <div class="card">
@@ -357,6 +356,18 @@
     <div class="wk-caption" id="weekbarCaption"></div>
     <div id="consistencyInsight" style="margin-top:12px"></div>
   </div>
+
+  <div class="card" id="mailCard">
+    <h2>Auswertung per E-Mail erhalten</h2>
+    <p class="desc">Wir schicken dir deine berechneten Kennzahlen (KPIs, Top-Beiträge, Konsistenz, Konvertierung) als übersichtliche Mail. Übertragen werden nur diese Ergebnisse — deine Export-Rohdaten verlassen deinen Browser nicht.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <input type="email" id="mailInput" placeholder="deine@email.de" style="flex:1;min-width:220px;font:inherit;padding:10px 14px;border:1px solid var(--baseline);border-radius:10px">
+      <input type="text" id="mailWebsite" style="display:none" tabindex="-1" autocomplete="off">
+      <button class="report-btn" id="mailBtn" type="button" style="margin-left:0">Analyse zuschicken →</button>
+    </div>
+    <div id="mailStatus" style="font-size:0.8rem;margin-top:8px;min-height:1.2em;color:var(--text-secondary)"></div>
+  </div>
+</div>
 
 <div id="tooltip"></div>
 
@@ -890,7 +901,8 @@ function renderPosts() {
     }
   } else {
     note.style.display = 'none';
-    heading.innerHTML = 'Top-Beiträge <span style="font-weight:400;color:var(--text-secondary)">(max. 50)</span>';
+    const nAll = currentModel.posts.length;
+    heading.innerHTML = `Top-Beiträge <span style="font-weight:400;color:var(--text-secondary)">(${nAll >= 50 ? '50 von 50 — gedeckelt' : nAll})</span>`;
   }
 
   // Abdeckung: wie viele der Gesamt-Impressions stecken in den Top 50?
@@ -899,9 +911,17 @@ function renderPosts() {
   const totalImp = currentModel.summary.impressions ?? currentModel.totalImp;
   if (totalImp > 0 && covEl) {
     const cov = Math.min(1, topImp / totalImp);
+    const nAll = currentModel.posts.length;
     covEl.innerHTML = `
       <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-secondary);margin-bottom:4px">
-        <span>Top-50-Beiträge: ${fmt(topImp)} Impressions</span>
+        <span>Beiträge in der Liste: ${nAll} / 50</span>
+        <span>${nAll >= 50 ? 'Maximum erreicht — ältere/schwächere Beiträge fehlen' : 'alle erfassten Beiträge sichtbar'}</span>
+      </div>
+      <div class="bar-track" style="height:6px;background:var(--grid);border-radius:3px;overflow:hidden;margin-bottom:10px">
+        <div style="height:100%;width:${(nAll / 50 * 100).toFixed(0)}%;background:var(--series-2);border-radius:3px"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-secondary);margin-bottom:4px">
+        <span>Impressions dieser Beiträge: ${fmt(topImp)}</span>
         <span>Gesamt: ${fmt(totalImp)}</span>
       </div>
       <div class="bar-track" style="height:10px;background:var(--grid);border-radius:5px;overflow:hidden">
@@ -955,19 +975,20 @@ function setParams(p) { localStorage.setItem('li-funnel-params', JSON.stringify(
 
 function renderFunnel(model) {
   const p = getParams();
-  const activeMonths = model.months.filter(m => m.imp > 200);
-  const nActive = Math.max(1, activeMonths.length);
-  const impPerMonth = activeMonths.reduce((s, m) => s + m.imp, 0) / nActive;
-  const engPerMonth = activeMonths.reduce((s, m) => s + m.eng, 0) / nActive;
-  const reachedPerMonth = model.summary.reached ? model.summary.reached / Math.max(1, model.months.length) * (model.months.length / nActive) : null;
+  const nMonths = Math.max(1, model.months.length);
+  const impPerMonth = model.totalImp / nMonths;
+  const engPerMonth = model.totalEng / nMonths;
+  // "Erreichte Personen" liefert der Export nur als EINEN Gesamtwert (Sheet AUFFINDBARKEIT,
+  // "Erreichte Mitglieder") — hier auf Monate heruntergerechnet, daher Näherung (≈)
+  const reachedPerMonth = model.summary.reached ? model.summary.reached / nMonths : null;
 
   const stages = [
-    { name: 'Impressions / Monat (aktive Monate)', v: impPerMonth },
-    reachedPerMonth != null ? { name: 'Erreichte Personen / Monat (≈)', v: reachedPerMonth } : null,
-    { name: 'Engagements / Monat', v: engPerMonth },
+    { name: 'Ø Impressions / Monat', v: impPerMonth },
+    reachedPerMonth != null ? { name: 'Ø erreichte Personen / Monat (≈)', v: reachedPerMonth, hint: 'Quelle: „Erreichte Mitglieder“ aus dem Export (Gesamtwert ÷ Monate)' } : null,
+    { name: 'Ø Engagements / Monat', v: engPerMonth },
     p.profile ? { name: 'Profilaufrufe / Monat', v: p.profile } : null,
     p.msgs != null && p.msgs !== '' ? { name: 'Nachrichten & Anfragen / Monat', v: +p.msgs } : null,
-    p.leads != null && p.leads !== '' ? { name: 'Qualifizierte Leads / Monat', v: +p.leads } : null,
+    p.leads != null && p.leads !== '' ? { name: 'Qualifizierte Kundenanfragen / Monat', v: +p.leads } : null,
   ].filter(Boolean);
 
   const max = Math.max(...stages.map(s => s.v), 1);
@@ -992,6 +1013,9 @@ function renderFunnel(model) {
   }
   if (p.profile && impPerMonth > 0) {
     extra.push(`👤 <strong>${fmtPct(+p.profile / impPerMonth)}</strong> deiner Impressions führen zu einem Profilbesuch. Unter 1 %? Dann fehlt in deinen Posts der Grund, auf dich zu klicken (klare Positionierung in den ersten 2 Zeilen, Profil-Slogan).`);
+  }
+  if (p.leads && impPerMonth > 0) {
+    extra.push(`🏁 <strong>Gesamtkonvertierung: ${(+p.leads / impPerMonth * 100).toLocaleString('de-DE', { maximumFractionDigits: 3 })} %</strong> — von ${fmt(impPerMonth)} Impressions pro Monat werden ${fmt(+p.leads)} qualifizierte Kundenanfragen. Anders gesagt: ca. ${fmt(impPerMonth / +p.leads)} Impressions pro Lead.`);
   }
   document.getElementById('funnelInsights')?.remove();
   if (extra.length) {
@@ -1189,10 +1213,55 @@ document.getElementById('demoBtn').addEventListener('click', e => {
   });
 });
 
-// "Neue Daten laden": Dropzone wieder einblenden — neuer Export ersetzt die Ansicht (nur im RAM)
-document.getElementById('reloadBtn').addEventListener('click', () => {
-  dz.style.display = '';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+// ---------- Auswertung per E-Mail (nur berechnete Kennzahlen, keine Rohdaten) ----------
+
+function buildSummary() {
+  const m = currentModel;
+  const range = getRange(m);
+  const cur = sumDays(daysInRange(m, range.start, range.end));
+  const p = getParams();
+  const nMonths = Math.max(1, m.months.length);
+  const impPerMonth = m.totalImp / nMonths;
+  const topPosts = [...m.posts].filter(x => x.imp).sort((a, b) => b.imp - a.imp).slice(0, 5)
+    .map(x => ({ title: x.title, date: x.date ? fmtDate(x.date) : '', imp: x.imp, er: x.er }));
+  // Konsistenz-Kacheln aus dem DOM übernehmen (bereits berechnet)
+  const streakVals = [...document.querySelectorAll('.streak-tile .sv')].map(e => e.textContent);
+  return {
+    period: range.start ? `${fmtDate(range.start)} – ${fmtDate(range.end)}` : '',
+    impressions: cur.imp,
+    reached: m.summary.reached ?? null,
+    followersTotal: m.followersTotal,
+    followersNew: cur.fol,
+    followerGrowth: m.followersTotal && m.followersTotal - cur.fol > 0 ? cur.fol / (m.followersTotal - cur.fol) : null,
+    engagements: cur.eng,
+    er: cur.imp ? cur.eng / cur.imp : null,
+    activeWeeks: streakVals[0] ? parseInt(streakVals[0]) : null,
+    totalWeeks: streakVals[0]?.includes('/') ? parseInt(streakVals[0].split('/')[1]) : null,
+    streak: streakVals[1] ? parseInt(streakVals[1]) : null,
+    impPerLead: p.leads > 0 ? impPerMonth / p.leads : null,
+    totalConv: p.leads > 0 && impPerMonth > 0 ? p.leads / impPerMonth : null,
+    topPosts,
+  };
+}
+
+document.getElementById('mailBtn').addEventListener('click', async () => {
+  const email = document.getElementById('mailInput').value.trim();
+  const status = document.getElementById('mailStatus');
+  if (!currentModel) { status.textContent = 'Lade zuerst deinen LinkedIn-Export.'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { status.textContent = 'Bitte eine gültige E-Mail-Adresse eingeben.'; return; }
+  status.textContent = 'Wird gesendet…';
+  try {
+    const res = await fetch('https://kuehn.tech/api/linkedin-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, website: document.getElementById('mailWebsite').value, summary: buildSummary() }),
+    });
+    if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+    status.textContent = '✅ Unterwegs! Schau in dein Postfach (ggf. auch im Spam).';
+    document.getElementById('mailInput').value = '';
+  } catch (e) {
+    status.textContent = 'Versand fehlgeschlagen: ' + e.message;
+  }
 });
 
 // ---------- Lokaler Modus: liegt eine data.json neben der Seite, direkt laden (kein Passwort) ----------
