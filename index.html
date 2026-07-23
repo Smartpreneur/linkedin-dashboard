@@ -8,7 +8,7 @@
 <style>
   :root {
     color-scheme: light;
-    --page:           #f4f2ee;   /* LinkedIn-Hintergrund */
+    --page:           #f4f2ee;
     --surface-1:      #ffffff;
     --text-primary:   #0b0b0b;
     --text-secondary: #52514e;
@@ -19,9 +19,9 @@
     --series-1:       #2a78d6;  /* Impressions */
     --series-2:       #eb6834;  /* Follower */
     --series-3:       #1baf7a;  /* Engagement-Rate */
-    --funnel:         #2a78d6;
     --delta-good:     #006300;
-    --accent:         #0a66c2;  /* LinkedIn-Blau fürs Branding */
+    --accent:         #0a66c2;
+    --kuehn:          #0071e3;  /* kuehn.tech Brand-Blau */
     --shadow: 0 1px 2px rgba(11,11,11,0.05), 0 4px 16px rgba(11,11,11,0.04);
   }
   * { box-sizing: border-box; margin: 0; }
@@ -33,39 +33,23 @@
   }
   .shell { max-width: 1100px; margin: 0 auto; padding: 0 24px 48px; }
 
-  /* Header */
   header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 0 16px;
-    margin-bottom: 28px;
+    padding: 20px 0 16px; margin-bottom: 28px;
     border-bottom: 1px solid var(--border);
   }
-  .brand-left { display: flex; align-items: center; gap: 12px; }
-  .li-mark {
-    width: 38px; height: 38px; border-radius: 8px;
-    background: var(--accent);
-    display: grid; place-items: center;
-    color: #fff; font-weight: 800; font-size: 1.25rem;
-    letter-spacing: -0.5px;
+  .brand-left h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.01em; }
+  .brand-left .tag { font-size: 0.78rem; color: var(--text-muted); margin-top: -2px; }
+  .brand-right a.wordmark {
+    font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em;
+    color: var(--kuehn); text-decoration: none;
   }
-  .brand-left h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; }
-  .brand-left .tag { font-size: 0.78rem; color: var(--text-muted); margin-top: -3px; }
-  .brand-right { text-align: right; }
-  .brand-right .wordmark { font-size: 1.02rem; font-weight: 750; letter-spacing: 0.01em; }
-  .brand-right .wordmark .dot { color: var(--accent); }
-  .brand-right .claim { font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
+  .brand-right a.wordmark:hover { text-decoration: underline; }
 
-  .sub { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px; }
-
-  /* Dropzone */
   #dropzone {
     border: 2px dashed var(--baseline);
-    border-radius: 16px;
-    padding: 48px 24px;
-    text-align: center;
-    background: var(--surface-1);
-    cursor: pointer;
-    margin-bottom: 16px;
+    border-radius: 16px; padding: 48px 24px; text-align: center;
+    background: var(--surface-1); cursor: pointer; margin-bottom: 16px;
     transition: border-color .15s, box-shadow .15s;
     box-shadow: var(--shadow);
   }
@@ -81,63 +65,82 @@
   #dropzone button:hover { background: rgba(10,102,194,0.06); }
   .privacy { font-size: 0.78rem; color: var(--text-muted); text-align: center; margin: 0 0 28px; }
 
-  /* KPI tiles */
   .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 24px; }
   .tile {
-    background: var(--surface-1);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 18px;
-    box-shadow: var(--shadow);
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px; box-shadow: var(--shadow);
   }
   .tile .label { font-size: 0.76rem; color: var(--text-secondary); letter-spacing: 0.02em; }
   .tile .value { font-size: 1.85rem; font-weight: 700; letter-spacing: -0.02em; margin-top: 2px; }
   .tile .delta { font-size: 0.76rem; color: var(--text-muted); }
-  .tile .delta.good { color: var(--delta-good); }
 
-  /* Cards */
   .card {
-    background: var(--surface-1);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 22px;
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px; margin-bottom: 22px;
     box-shadow: var(--shadow);
   }
   .card h2 { font-size: 1.02rem; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 2px; }
   .card .desc { font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 16px; }
-  .legend { display: flex; gap: 16px; font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 8px; flex-wrap: wrap; }
+  .legend { display: flex; gap: 16px; font-size: 0.78rem; color: var(--text-secondary); margin: 6px 0 4px; flex-wrap: wrap; }
   .legend .item { display: flex; align-items: center; gap: 6px; }
   .legend .swatch { width: 10px; height: 10px; border-radius: 3px; }
   .chart-wrap { overflow-x: auto; }
   svg text { font-family: inherit; }
 
-  /* Tooltip */
+  /* Filter-Pills */
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin-bottom: 14px; }
+  .control-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .control-group .cl { font-size: 0.74rem; color: var(--text-muted); margin-right: 2px; }
+  .pill {
+    font: inherit; font-size: 0.78rem; font-weight: 600;
+    padding: 4px 12px; border-radius: 999px;
+    border: 1px solid var(--baseline); background: none;
+    color: var(--text-secondary); cursor: pointer;
+  }
+  .pill:hover { border-color: var(--accent); color: var(--accent); }
+  .pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .pill-input {
+    width: 64px; font: inherit; font-size: 0.78rem;
+    padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--baseline);
+  }
+  .pill-input:focus { outline: 2px solid rgba(10,102,194,0.3); }
+
+  .selection-note {
+    display: none; align-items: center; gap: 10px;
+    font-size: 0.8rem; color: var(--text-secondary);
+    background: rgba(10,102,194,0.06);
+    border: 1px solid rgba(10,102,194,0.25);
+    border-radius: 10px; padding: 6px 12px; margin-bottom: 12px;
+  }
+  .selection-note button {
+    font: inherit; font-size: 0.74rem; font-weight: 600;
+    border: none; background: none; color: var(--accent); cursor: pointer; padding: 0;
+  }
+
   #tooltip {
     position: fixed; pointer-events: none;
-    background: var(--surface-1);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    box-shadow: 0 6px 24px rgba(11,11,11,0.14);
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 10px; box-shadow: 0 6px 24px rgba(11,11,11,0.14);
     padding: 8px 12px; font-size: 0.78rem;
-    display: none; z-index: 10; max-width: 320px;
+    display: none; z-index: 10; max-width: 340px;
   }
-  #tooltip .t-title { font-weight: 600; }
-  #tooltip .t-row { color: var(--text-secondary); }
+  #tooltip .t-title { font-weight: 600; margin-bottom: 2px; }
+  #tooltip .t-row { color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+  #tooltip .t-row .sw { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
 
-  /* Table */
   table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
-  th { text-align: left; color: var(--text-secondary); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--baseline); white-space: nowrap; cursor: pointer; }
+  th { text-align: left; color: var(--text-secondary); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--baseline); white-space: nowrap; cursor: pointer; user-select: none; }
   td { padding: 8px 10px; border-bottom: 1px solid var(--grid); vertical-align: top; }
   td.title { max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.date, th.date { white-space: nowrap; font-variant-numeric: tabular-nums; }
   tr:hover td { background: rgba(42,120,214,0.05); }
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
   .table-wrap { overflow-x: auto; }
   .er-hi { color: var(--delta-good); font-weight: 600; }
 
-  /* Funnel */
   .funnel-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 20px; }
   .funnel-inputs label { display: block; font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 4px; }
   .funnel-inputs input {
@@ -151,10 +154,9 @@
   .funnel-stage .name { font-weight: 600; }
   .funnel-stage .val { font-variant-numeric: tabular-nums; color: var(--text-secondary); }
   .funnel-stage .bar-track { height: 14px; background: var(--grid); border-radius: 7px; overflow: hidden; }
-  .funnel-stage .bar-fill { height: 100%; background: var(--funnel); border-radius: 7px; min-width: 3px; }
+  .funnel-stage .bar-fill { height: 100%; background: var(--series-1); border-radius: 7px; min-width: 3px; }
   .funnel-stage .conv { font-size: 0.74rem; color: var(--text-muted); margin-top: 3px; }
 
-  /* Demographics */
   .demo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
   .demo-block h3 { font-size: 0.86rem; margin-bottom: 10px; }
   .demo-row { display: grid; grid-template-columns: 1fr 48px; gap: 8px; align-items: center; font-size: 0.8rem; margin-bottom: 7px; }
@@ -163,7 +165,6 @@
   .demo-row .bar-fill { height: 100%; background: var(--series-1); border-radius: 4px; }
   .demo-row .pct { text-align: right; font-variant-numeric: tabular-nums; }
 
-  /* Insights */
   .insight { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--grid); font-size: 0.88rem; }
   .insight:last-child { border-bottom: none; }
   .insight .icon { flex-shrink: 0; }
@@ -171,11 +172,7 @@
   #dashboard { display: none; }
   footer { color: var(--text-muted); font-size: 0.75rem; text-align: center; margin-top: 36px; }
 
-  /* Passwort-Overlay (nur bei privatem Deployment mit data.enc.json aktiv) */
-  #lock {
-    position: fixed; inset: 0; background: var(--page);
-    display: none; place-items: center; z-index: 50;
-  }
+  #lock { position: fixed; inset: 0; background: var(--page); display: none; place-items: center; z-index: 50; }
   #lock .box {
     background: var(--surface-1); border: 1px solid var(--border);
     border-radius: 16px; padding: 32px; box-shadow: var(--shadow);
@@ -191,15 +188,11 @@
 
 <header>
   <div class="brand-left">
-    <div class="li-mark">in</div>
-    <div>
-      <h1>LinkedIn Analytics Dashboard</h1>
-      <div class="tag" id="period">Deine Zahlen, besser aufgedröselt als in LinkedIn selbst.</div>
-    </div>
+    <h1>LinkedIn Analytics Dashboard</h1>
+    <div class="tag" id="period">Deine Zahlen, besser aufgedröselt als in LinkedIn selbst.</div>
   </div>
   <div class="brand-right">
-    <div class="wordmark">kuehn<span class="dot">.</span>tech</div>
-    <div class="claim">AI · Finance · Systems</div>
+    <a class="wordmark" href="https://kuehn.tech" target="_blank" rel="noopener">kuehn.tech</a>
   </div>
 </header>
 
@@ -215,18 +208,54 @@
   <div class="kpis" id="kpis"></div>
 
   <div class="card">
-    <h2>Reichweite &amp; Wachstum pro Monat</h2>
-    <p class="desc">Impressions und neue Follower (getrennte Skalen). Konsistenz-Check: Lücken hier = Lücken im Wachstum.</p>
-    <div class="legend"><span class="item"><span class="swatch" style="background:var(--series-1)"></span>Impressions</span></div>
-    <div class="chart-wrap"><div id="chartImpressions"></div></div>
-    <div class="legend" style="margin-top:18px"><span class="item"><span class="swatch" style="background:var(--series-2)"></span>Neue Follower</span></div>
-    <div class="chart-wrap"><div id="chartFollowers"></div></div>
+    <h2>Aktivität: Impressions, Follower &amp; Engagement</h2>
+    <p class="desc">Beide Panels teilen sich die Zeitachse — ein Hover zeigt alle Werte. Klick auf einen Balken filtert die Beiträge darunter auf diesen Zeitraum.</p>
+    <div class="controls">
+      <div class="control-group" id="rangeGroup">
+        <span class="cl">Zeitraum</span>
+        <button class="pill" data-days="7">7 T</button>
+        <button class="pill" data-days="14">14 T</button>
+        <button class="pill" data-days="28">28 T</button>
+        <button class="pill" data-days="90">90 T</button>
+        <button class="pill" data-days="180">180 T</button>
+        <button class="pill active" data-days="365">365 T</button>
+        <input class="pill-input" id="customDays" type="number" min="2" max="730" placeholder="Tage…" title="Individueller Zeitraum in Tagen">
+      </div>
+      <div class="control-group" id="granGroup">
+        <span class="cl">Ansicht</span>
+        <button class="pill" data-gran="daily">Tag</button>
+        <button class="pill" data-gran="weekly">Woche</button>
+        <button class="pill active" data-gran="monthly">Monat</button>
+      </div>
+    </div>
+    <div class="legend">
+      <span class="item"><span class="swatch" style="background:var(--series-1)"></span>Impressions</span>
+      <span class="item"><span class="swatch" style="background:var(--series-2)"></span>Neue Follower</span>
+    </div>
+    <div class="chart-wrap"><div id="chartCombined"></div></div>
+    <div class="legend" style="margin-top:14px">
+      <span class="item"><span class="swatch" style="background:var(--series-3)"></span>Engagement-Rate</span>
+    </div>
+    <div class="chart-wrap"><div id="chartER"></div></div>
   </div>
 
   <div class="card">
-    <h2>Engagement-Rate pro Monat</h2>
-    <p class="desc">Engagement ÷ Impressions. Zeigt, ob dein Content resoniert — unabhängig davon, wie viel du postest.</p>
-    <div class="chart-wrap"><div id="chartER"></div></div>
+    <h2 id="postsHeading">Top-Beiträge</h2>
+    <p class="desc">Standard: nach Impressions sortiert — Klick auf eine Spalte sortiert um. ER ≥ 3&nbsp;% ist grün markiert. Reaktionen/Kommentare/Saves pro Beitrag stecken leider nicht im Aggregate-Export — die zeigt LinkedIn nur pro Beitrag in der App (Beitrag → Analytics ansehen); dort siehst du auch den Follower- vs. Nicht-Follower-Anteil.</p>
+    <div class="selection-note" id="selectionNote">
+      <span id="selectionLabel"></span>
+      <button id="clearSelection" type="button">✕ Filter aufheben</button>
+    </div>
+    <div class="table-wrap"><table id="postsTable">
+      <thead><tr>
+        <th data-sort="date" class="date">Datum</th>
+        <th data-sort="title">Beitrag</th>
+        <th data-sort="imp" class="num">Impressions ▾</th>
+        <th data-sort="eng" class="num">Engagement</th>
+        <th data-sort="er" class="num">ER</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table></div>
   </div>
 
   <div class="card">
@@ -238,21 +267,6 @@
       <div><label for="inProfile">Ø Profilaufrufe pro Monat (optional)</label><input type="number" id="inProfile" min="0" step="1" placeholder="aus LinkedIn Analytics"></div>
     </div>
     <div id="funnel"></div>
-  </div>
-
-  <div class="card">
-    <h2>Top-Beiträge</h2>
-    <p class="desc">Sortierbar per Klick auf die Spalte. ER ≥ 3&nbsp;% ist grün markiert — diese Formate wiederholen. Tipp: Follower- vs. Nicht-Follower-Anteil zeigt LinkedIn nur pro Beitrag in der App (Beitrag → Analytics ansehen) — prüfe ihn bei deinen Top-Posts: hoher Nicht-Follower-Anteil = Reichweiten-Format, hoher Follower-Anteil = Vertrauens-Format.</p>
-    <div class="table-wrap"><table id="postsTable">
-      <thead><tr>
-        <th data-sort="title">Beitrag</th>
-        <th data-sort="date" class="num">Datum</th>
-        <th data-sort="imp" class="num">Impressions ▾</th>
-        <th data-sort="eng" class="num">Engagement</th>
-        <th data-sort="er" class="num">ER</th>
-      </tr></thead>
-      <tbody></tbody>
-    </table></div>
   </div>
 
   <div class="card">
@@ -272,7 +286,6 @@
 
 <div id="lock">
   <div class="box">
-    <div class="li-mark" style="margin:0 auto 12px">in</div>
     <strong>Privates Dashboard</strong>
     <input type="password" id="pw" placeholder="Passwort" autofocus>
     <button id="unlockBtn" type="button">Entsperren</button>
@@ -280,7 +293,7 @@
   </div>
 </div>
 
-<footer>Alle Auswertungen laufen lokal im Browser · Open Source · <a href="https://github.com/Smartpreneur/linkedin-dashboard">GitHub</a> · ein Tool von <a href="https://kuehn.tech">kuehn.tech</a></footer>
+<footer>Alle Auswertungen laufen lokal im Browser · Open Source · <a href="https://github.com/Smartpreneur/linkedin-dashboard">GitHub</a> · ein Tool von <a href="https://kuehn.tech" style="color:var(--kuehn)">kuehn.tech</a></footer>
 </div>
 
 <script>
@@ -356,7 +369,7 @@ function parseWorkbook(wb) {
   const demographics = {};
   for (const r of rows(findSheet(wb, ['DEMOGRAF', 'DEMOGRAPH']))) {
     if (!r[0] || !r[1] || !r[2] || /wichtige|top demo/i.test(r[0])) continue;
-    const pctStr = String(r[2]).replace(/ /g, ' ');
+    const pctStr = String(r[2]).replace(/ /g, ' ');
     const lt = pctStr.includes('<');
     const pct = parseFloat(pctStr.replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
     (demographics[r[0]] ??= []).push({ name: r[1], pct: lt ? 0.5 : pct, label: pctStr.trim() });
@@ -370,36 +383,85 @@ function parseWorkbook(wb) {
 const MONTH_NAMES = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
 const fmt = n => n == null ? '–' : Math.round(n).toLocaleString('de-DE');
 const fmtPct = x => x == null ? '–' : (x * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %';
-
-function monthly(items, get) {
-  const map = new Map();
-  for (const it of items) {
-    const k = it.date.getFullYear() + '-' + String(it.date.getMonth() + 1).padStart(2, '0');
-    map.set(k, (map.get(k) || 0) + get(it));
-  }
-  return map;
-}
+const fmtDate = d => d ? `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getFullYear()).slice(2)}` : '–';
+const dayKey = d => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
 
 function buildModel(data) {
-  const impM = monthly(data.daily, d => d.imp);
-  const engM = monthly(data.daily, d => d.eng);
-  const folM = monthly(data.followersDaily, d => d.n);
-  const keys = [...new Set([...impM.keys(), ...folM.keys()])].sort();
-  const months = keys.map(k => {
-    const [y, m] = k.split('-');
-    return {
-      key: k, label: MONTH_NAMES[+m - 1] + ' ' + y.slice(2),
-      imp: impM.get(k) || 0, eng: engM.get(k) || 0, fol: folM.get(k) || 0,
-      er: (impM.get(k) || 0) > 0 ? (engM.get(k) || 0) / impM.get(k) : null,
-    };
+  data.daily.sort((a, b) => a.date - b.date);
+  data.followersDaily.sort((a, b) => a.date - b.date);
+  const folByDay = new Map(data.followersDaily.map(f => [dayKey(f.date), f.n]));
+  const days = data.daily.map(d => ({ ...d, fol: folByDay.get(dayKey(d.date)) || 0 }));
+
+  const monthlyMap = new Map();
+  for (const d of days) {
+    const k = d.date.getFullYear() + '-' + String(d.date.getMonth() + 1).padStart(2, '0');
+    const m = monthlyMap.get(k) || { imp: 0, eng: 0, fol: 0 };
+    m.imp += d.imp; m.eng += d.eng; m.fol += d.fol;
+    monthlyMap.set(k, m);
+  }
+  const months = [...monthlyMap.entries()].sort().map(([k, m]) => {
+    const [y, mo] = k.split('-');
+    return { key: k, label: MONTH_NAMES[+mo - 1] + ' ' + y.slice(2), ...m, er: m.imp > 0 ? m.eng / m.imp : null };
   });
-  const totalImp = months.reduce((s, m) => s + m.imp, 0);
-  const totalEng = months.reduce((s, m) => s + m.eng, 0);
-  const totalFol = months.reduce((s, m) => s + m.fol, 0);
-  return { ...data, months, totalImp, totalEng, totalFol, avgER: totalImp ? totalEng / totalImp : null };
+
+  const totalImp = days.reduce((s, d) => s + d.imp, 0);
+  const totalEng = days.reduce((s, d) => s + d.eng, 0);
+  const totalFol = days.reduce((s, d) => s + d.fol, 0);
+  return { ...data, days, months, totalImp, totalEng, totalFol, avgER: totalImp ? totalEng / totalImp : null };
 }
 
-// ---------- Charts (plain SVG) ----------
+// Bins nach Granularität + Zeitraum
+function makeBins(model, gran, rangeDays) {
+  let days = model.days;
+  if (rangeDays && days.length) {
+    const maxD = days[days.length - 1].date;
+    const cutoff = new Date(maxD); cutoff.setDate(cutoff.getDate() - rangeDays + 1);
+    days = days.filter(d => d.date >= cutoff);
+  }
+  const bins = [];
+  const binMap = new Map();
+  for (const d of days) {
+    let key, start;
+    if (gran === 'daily') {
+      key = dayKey(d.date); start = d.date;
+    } else if (gran === 'weekly') {
+      const s = new Date(d.date); s.setDate(s.getDate() - ((s.getDay() + 6) % 7)); // Montag
+      key = dayKey(s); start = s;
+    } else {
+      const s = new Date(d.date.getFullYear(), d.date.getMonth(), 1);
+      key = dayKey(s); start = s;
+    }
+    let b = binMap.get(key);
+    if (!b) {
+      b = { start, end: null, imp: 0, eng: 0, fol: 0 };
+      binMap.set(key, b); bins.push(b);
+    }
+    b.imp += d.imp; b.eng += d.eng; b.fol += d.fol;
+    b.end = d.date;
+  }
+  for (const b of bins) {
+    b.er = b.imp > 0 ? b.eng / b.imp : null;
+    if (gran === 'daily') { b.label = fmtDate(b.start); b.rangeEnd = b.start; }
+    else if (gran === 'weekly') {
+      const e = new Date(b.start); e.setDate(e.getDate() + 6);
+      b.label = fmtDate(b.start); b.rangeEnd = e;
+      b.longLabel = `Woche ${fmtDate(b.start)} – ${fmtDate(e)}`;
+    } else {
+      b.label = MONTH_NAMES[b.start.getMonth()] + ' ' + String(b.start.getFullYear()).slice(2);
+      b.rangeEnd = new Date(b.start.getFullYear(), b.start.getMonth() + 1, 0);
+    }
+    b.longLabel = b.longLabel || b.label;
+  }
+  return bins;
+}
+
+// ---------- Chart-State ----------
+
+const state = { gran: 'monthly', rangeDays: 365, selected: null };
+let currentModel = null;
+let currentBins = [];
+
+// ---------- Tooltip ----------
 
 const tooltip = document.getElementById('tooltip');
 function showTip(evt, html) {
@@ -411,76 +473,207 @@ function showTip(evt, html) {
 }
 function hideTip() { tooltip.style.display = 'none'; }
 
-function barChart(el, months, get, color, valueLabel, format = fmt) {
-  const W = Math.max(560, months.length * 52), H = 190, P = { t: 18, r: 8, b: 24, l: 8 };
-  const max = Math.max(1, ...months.map(get));
-  const bw = (W - P.l - P.r) / months.length;
-  const maxIdx = months.findIndex(m => get(m) === max);
-  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="${valueLabel} pro Monat">`;
+function binTip(b) {
+  return `<div class="t-title">${b.longLabel}</div>
+    <div class="t-row"><span class="sw" style="background:var(--series-1)"></span>Impressions: ${fmt(b.imp)}</div>
+    <div class="t-row"><span class="sw" style="background:var(--series-2)"></span>Neue Follower: ${fmt(b.fol)}</div>
+    <div class="t-row"><span class="sw" style="background:var(--series-3)"></span>Engagement: ${fmt(b.eng)} (ER ${fmtPct(b.er)})</div>`;
+}
+
+// ---------- Kombinierter Chart: 2 ausgerichtete Panels + gemeinsamer Hover ----------
+
+function renderCombined() {
+  const bins = currentBins;
+  const el = document.getElementById('chartCombined');
+  if (!bins.length) { el.innerHTML = '<p style="color:var(--text-muted);font-size:0.84rem">Keine Daten im gewählten Zeitraum.</p>'; return; }
+
+  const n = bins.length;
+  const W = Math.min(Math.max(600, n * 46), 1040);
+  const H1 = 190, H2 = 78, GAP = 10, AX = 22;
+  const H = H1 + GAP + H2 + AX;
+  const P = { l: 8, r: 8 };
+  const bw = (W - P.l - P.r) / n;
+  const barFrac = n > 60 ? 0.9 : 0.64;
+  const rounded = bw * barFrac >= 7;
+
+  const maxImp = Math.max(1, ...bins.map(b => b.imp));
+  const maxFol = Math.max(1, ...bins.map(b => b.fol));
+  const maxImpIdx = bins.findIndex(b => b.imp === maxImp);
+  const labelEvery = Math.max(1, Math.ceil(n / 13));
+
+  const bar = (x, w, y, base, fill, extra) => rounded
+    ? `<path d="M${x},${base} L${x},${y + 3} Q${x},${y} ${x + 3},${y} L${x + w - 3},${y} Q${x + w},${y} ${x + w},${y + 3} L${x + w},${base} Z" fill="${fill}" ${extra}/>`
+    : `<rect x="${x}" y="${y}" width="${Math.max(w, 1)}" height="${base - y}" fill="${fill}" ${extra}/>`;
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="Impressions und neue Follower">`;
   for (const f of [0.5, 1]) {
-    const y = P.t + (H - P.t - P.b) * (1 - f);
+    const y = 14 + (H1 - 14 - 4) * (1 - f);
     s += `<line x1="${P.l}" y1="${y}" x2="${W - P.r}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`;
   }
-  months.forEach((m, i) => {
-    const v = get(m);
-    const h = (H - P.t - P.b) * v / max;
-    const x = P.l + i * bw + bw * 0.18, w = bw * 0.64;
-    const y = H - P.b - h;
-    s += `<path d="M${x},${H - P.b} L${x},${y + 4} Q${x},${y} ${x + 4},${y} L${x + w - 4},${y} Q${x + w},${y} ${x + w},${y + 4} L${x + w},${H - P.b} Z" fill="${color}"/>`;
-    s += `<rect x="${P.l + i * bw}" y="${P.t}" width="${bw}" height="${H - P.t - P.b}" fill="transparent" data-i="${i}" class="hit"/>`;
-    s += `<text x="${P.l + i * bw + bw / 2}" y="${H - 6}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${m.label}</text>`;
-    if (i === maxIdx && v > 0)
-      s += `<text x="${P.l + i * bw + bw / 2}" y="${y - 5}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--text-secondary)">${format(v)}</text>`;
+  const base1 = H1, base2 = H1 + GAP + H2;
+  bins.forEach((b, i) => {
+    const x = P.l + i * bw + bw * (1 - barFrac) / 2, w = bw * barFrac;
+    const sel = state.selected === i;
+    const dim = state.selected != null && !sel;
+    const op = dim ? 0.35 : 1;
+    // Panel 1: Impressions
+    const h1 = (H1 - 18) * b.imp / maxImp;
+    s += bar(x, w, base1 - h1, base1, 'var(--series-1)', `opacity="${op}"`);
+    // Panel 2: Follower
+    const h2 = (H2 - 6) * b.fol / maxFol;
+    s += bar(x, w, base2 - h2, base2, 'var(--series-2)', `opacity="${op}"`);
+    if (sel) s += `<rect x="${P.l + i * bw + 0.5}" y="2" width="${bw - 1}" height="${base2 - 2}" fill="none" stroke="var(--accent)" stroke-width="1.5" rx="6"/>`;
+    if (i === maxImpIdx && b.imp > 0 && !dim)
+      s += `<text x="${P.l + i * bw + bw / 2}" y="${base1 - h1 - 5}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--text-secondary)">${fmt(b.imp)}</text>`;
+    if (i % labelEvery === 0)
+      s += `<text x="${P.l + i * bw + bw / 2}" y="${H - 6}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${b.label}</text>`;
+    // gemeinsamer Hit-Bereich über beide Panels
+    s += `<rect x="${P.l + i * bw}" y="0" width="${bw}" height="${base2}" fill="transparent" data-i="${i}" class="hit" style="cursor:pointer"/>`;
   });
-  s += `<line x1="${P.l}" y1="${H - P.b}" x2="${W - P.r}" y2="${H - P.b}" stroke="var(--baseline)" stroke-width="1"/></svg>`;
+  s += `<line x1="${P.l}" y1="${base1}" x2="${W - P.r}" y2="${base1}" stroke="var(--baseline)" stroke-width="1"/>`;
+  s += `<line x1="${P.l}" y1="${base2}" x2="${W - P.r}" y2="${base2}" stroke="var(--baseline)" stroke-width="1"/>`;
+  s += `</svg>`;
   el.innerHTML = s;
+
   el.querySelectorAll('.hit').forEach(r => {
-    r.addEventListener('mousemove', evt => {
-      const m = months[+r.dataset.i];
-      showTip(evt, `<div class="t-title">${m.label}</div><div class="t-row">${valueLabel}: ${format(get(m))}</div>`);
-    });
+    const i = +r.dataset.i;
+    r.addEventListener('mousemove', evt => showTip(evt, binTip(bins[i])));
     r.addEventListener('mouseleave', hideTip);
+    r.addEventListener('click', () => {
+      state.selected = state.selected === i ? null : i;
+      renderCombined(); renderER(); renderPosts();
+    });
   });
 }
 
-function lineChart(el, months, get, color, valueLabel, format) {
-  const W = Math.max(560, months.length * 52), H = 170, P = { t: 18, r: 8, b: 24, l: 8 };
-  const vals = months.map(get);
-  const max = Math.max(0.01, ...vals.filter(v => v != null));
-  const xOf = i => P.l + (i + 0.5) * (W - P.l - P.r) / months.length;
+function renderER() {
+  const bins = currentBins;
+  const el = document.getElementById('chartER');
+  if (!bins.length) { el.innerHTML = ''; return; }
+  const n = bins.length;
+  const W = Math.min(Math.max(600, n * 46), 1040), H = 150, P = { t: 16, r: 8, b: 22, l: 8 };
+  const vals = bins.map(b => b.er);
+  const max = Math.max(0.005, ...vals.filter(v => v != null));
+  const xOf = i => P.l + (i + 0.5) * (W - P.l - P.r) / n;
   const yOf = v => P.t + (H - P.t - P.b) * (1 - v / max);
-  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="${valueLabel} pro Monat">`;
+  const labelEvery = Math.max(1, Math.ceil(n / 13));
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="Engagement-Rate">`;
   for (const f of [0.5, 1]) {
     const y = P.t + (H - P.t - P.b) * (1 - f);
     s += `<line x1="${P.l}" y1="${y}" x2="${W - P.r}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`;
   }
   let path = '', started = false;
-  months.forEach((m, i) => {
-    const v = get(m);
-    if (v == null) { started = false; return; }
-    path += (started ? 'L' : 'M') + xOf(i).toFixed(1) + ',' + yOf(v).toFixed(1) + ' ';
+  bins.forEach((b, i) => {
+    if (b.er == null) { started = false; return; }
+    path += (started ? 'L' : 'M') + xOf(i).toFixed(1) + ',' + yOf(b.er).toFixed(1) + ' ';
     started = true;
   });
-  s += `<path d="${path}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
-  months.forEach((m, i) => {
-    const v = get(m);
-    if (v == null) return;
-    s += `<circle cx="${xOf(i)}" cy="${yOf(v)}" r="4" fill="${color}" stroke="var(--surface-1)" stroke-width="2"/>`;
-    s += `<rect x="${xOf(i) - 20}" y="${P.t}" width="40" height="${H - P.t - P.b}" fill="transparent" data-i="${i}" class="hit"/>`;
-  });
-  months.forEach((m, i) => {
-    s += `<text x="${xOf(i)}" y="${H - 6}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${m.label}</text>`;
+  s += `<path d="${path}" fill="none" stroke="var(--series-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const dots = n <= 60;
+  bins.forEach((b, i) => {
+    if (b.er == null) return;
+    if (dots) s += `<circle cx="${xOf(i)}" cy="${yOf(b.er)}" r="4" fill="var(--series-3)" stroke="var(--surface-1)" stroke-width="2" ${state.selected != null && state.selected !== i ? 'opacity="0.35"' : ''}/>`;
+    s += `<rect x="${xOf(i) - (W - P.l - P.r) / n / 2}" y="${P.t}" width="${(W - P.l - P.r) / n}" height="${H - P.t - P.b}" fill="transparent" data-i="${i}" class="hit"/>`;
+    if (i % labelEvery === 0) s += `<text x="${xOf(i)}" y="${H - 6}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${b.label}</text>`;
   });
   s += `<line x1="${P.l}" y1="${H - P.b}" x2="${W - P.r}" y2="${H - P.b}" stroke="var(--baseline)" stroke-width="1"/></svg>`;
   el.innerHTML = s;
   el.querySelectorAll('.hit').forEach(r => {
-    r.addEventListener('mousemove', evt => {
-      const m = months[+r.dataset.i];
-      showTip(evt, `<div class="t-title">${m.label}</div><div class="t-row">${valueLabel}: ${format(get(m))}</div>`);
-    });
+    r.addEventListener('mousemove', evt => showTip(evt, binTip(bins[+r.dataset.i])));
     r.addEventListener('mouseleave', hideTip);
   });
 }
+
+// ---------- Controls ----------
+
+document.querySelectorAll('#rangeGroup .pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#rangeGroup .pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('customDays').value = '';
+    state.rangeDays = +btn.dataset.days;
+    state.selected = null;
+    refreshBins();
+  });
+});
+document.getElementById('customDays').addEventListener('change', e => {
+  const v = +e.target.value;
+  if (v >= 2) {
+    document.querySelectorAll('#rangeGroup .pill').forEach(b => b.classList.remove('active'));
+    state.rangeDays = v;
+    state.selected = null;
+    refreshBins();
+  }
+});
+document.querySelectorAll('#granGroup .pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#granGroup .pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.gran = btn.dataset.gran;
+    state.selected = null;
+    refreshBins();
+  });
+});
+document.getElementById('clearSelection').addEventListener('click', () => {
+  state.selected = null;
+  renderCombined(); renderER(); renderPosts();
+});
+
+function refreshBins() {
+  if (!currentModel) return;
+  currentBins = makeBins(currentModel, state.gran, state.rangeDays);
+  renderCombined(); renderER(); renderPosts();
+}
+
+// ---------- Posts-Tabelle ----------
+
+let sortState = { key: 'imp', dir: -1 };
+
+function renderPosts() {
+  if (!currentModel) return;
+  let posts = currentModel.posts;
+  const note = document.getElementById('selectionNote');
+  const heading = document.getElementById('postsHeading');
+  if (state.selected != null && currentBins[state.selected]) {
+    const b = currentBins[state.selected];
+    const s0 = new Date(b.start); s0.setHours(0, 0, 0, 0);
+    const e0 = new Date(b.rangeEnd); e0.setHours(23, 59, 59, 999);
+    posts = posts.filter(p => p.date && p.date >= s0 && p.date <= e0);
+    note.style.display = 'flex';
+    document.getElementById('selectionLabel').innerHTML = `Gefiltert auf <strong>&nbsp;${b.longLabel}&nbsp;</strong> — ${posts.length} Beitrag${posts.length === 1 ? '' : 'e'} in den Top 50`;
+    heading.textContent = 'Beiträge: ' + b.longLabel;
+  } else {
+    note.style.display = 'none';
+    heading.textContent = 'Top-Beiträge';
+  }
+
+  const sorted = [...posts].sort((a, b) => {
+    let va = a[sortState.key], vb = b[sortState.key];
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1;
+    if (vb == null) return -1;
+    if (va instanceof Date) { va = va.getTime(); vb = vb.getTime(); }
+    if (typeof va === 'string') return va.localeCompare(vb) * sortState.dir;
+    return (va - vb) * sortState.dir;
+  });
+  document.querySelector('#postsTable tbody').innerHTML = sorted.map(p => `<tr>
+    <td class="date">${fmtDate(p.date)}</td>
+    <td class="title" title="${p.title}"><a href="${p.url}" target="_blank" rel="noopener">${p.title}</a></td>
+    <td class="num">${fmt(p.imp)}</td>
+    <td class="num">${fmt(p.eng)}</td>
+    <td class="num ${p.er >= 0.03 ? 'er-hi' : ''}">${fmtPct(p.er)}</td>
+  </tr>`).join('') || `<tr><td colspan="5" style="color:var(--text-muted)">Keine Top-50-Beiträge in diesem Zeitraum.</td></tr>`;
+}
+
+document.querySelectorAll('#postsTable th').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.sort;
+    sortState = { key, dir: sortState.key === key ? -sortState.dir : -1 };
+    document.querySelectorAll('#postsTable th').forEach(h => h.innerHTML = h.innerHTML.replace(/ [▾▴]$/, ''));
+    th.innerHTML += sortState.dir === -1 ? ' ▾' : ' ▴';
+    renderPosts();
+  });
+});
 
 // ---------- Funnel ----------
 
@@ -488,8 +681,6 @@ function getParams() {
   try { return JSON.parse(localStorage.getItem('li-funnel-params')) || {}; } catch { return {}; }
 }
 function setParams(p) { localStorage.setItem('li-funnel-params', JSON.stringify(p)); }
-
-let currentModel = null;
 
 function renderFunnel(model) {
   const p = getParams();
@@ -513,7 +704,7 @@ function renderFunnel(model) {
   el.innerHTML = stages.map((s, i) => {
     const prev = i > 0 ? stages[i - 1].v : null;
     const conv = prev && prev > 0 ? s.v / prev : null;
-    const width = Math.max(1.5, Math.sqrt(s.v / max) * 100); // sqrt-Skala, sonst verschwinden untere Stufen
+    const width = Math.max(1.5, Math.sqrt(s.v / max) * 100);
     return `<div class="funnel-stage">
       <div class="row"><span class="name">${s.name}</span><span class="val">${fmt(s.v)}</span></div>
       <div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div>
@@ -521,11 +712,9 @@ function renderFunnel(model) {
     </div>`;
   }).join('');
 
-  // Funnel-Insights
   const extra = [];
   if (p.msgs) {
-    const perMsg = impPerMonth / +p.msgs;
-    extra.push(`✉️ Du brauchst aktuell ca. <strong>${fmt(perMsg)} Impressions pro Nachricht/Anfrage</strong>. Doppelte Reichweite ≈ doppelte Anfragen — solange der Content gleich bleibt.`);
+    extra.push(`✉️ Du brauchst aktuell ca. <strong>${fmt(impPerMonth / +p.msgs)} Impressions pro Nachricht/Anfrage</strong>. Doppelte Reichweite ≈ doppelte Anfragen — solange der Content gleich bleibt.`);
   }
   if (p.msgs && p.leads && +p.msgs > 0) {
     extra.push(`🎯 <strong>${fmtPct(+p.leads / +p.msgs)}</strong> deiner Anfragen werden zu qualifizierten Leads. Wenn diese Quote niedrig ist, zieht dein Content die falschen Leute an — dann hilft schärfere Positionierung mehr als mehr Reichweite.`);
@@ -570,47 +759,11 @@ function render(model) {
     ['Aktive Monate', `${activeMonths} / ${model.months.length}`, '> 200 Impressions'],
   ].map(([l, v, d]) => `<div class="tile"><div class="label">${l}</div><div class="value">${v}</div>${d ? `<div class="delta">${d}</div>` : ''}</div>`).join('');
 
-  barChart(document.getElementById('chartImpressions'), model.months, m => m.imp, 'var(--series-1)', 'Impressions');
-  barChart(document.getElementById('chartFollowers'), model.months, m => m.fol, 'var(--series-2)', 'Neue Follower');
-  lineChart(document.getElementById('chartER'), model.months, m => m.er, 'var(--series-3)', 'Engagement-Rate', fmtPct);
-
+  refreshBins();
   renderFunnel(model);
-  renderPosts(model.posts);
   renderDemographics(model.demographics);
   renderInsights(model);
 }
-
-let sortState = { key: 'imp', dir: -1 };
-let currentPosts = [];
-function renderPosts(posts) {
-  currentPosts = posts;
-  const tbody = document.querySelector('#postsTable tbody');
-  const sorted = [...posts].sort((a, b) => {
-    let va = a[sortState.key], vb = b[sortState.key];
-    if (va == null && vb == null) return 0;
-    if (va == null) return 1;
-    if (vb == null) return -1;
-    if (va instanceof Date) { va = va.getTime(); vb = vb.getTime(); }
-    if (typeof va === 'string') return va.localeCompare(vb) * sortState.dir;
-    return (va - vb) * sortState.dir;
-  });
-  tbody.innerHTML = sorted.map(p => `<tr>
-    <td class="title" title="${p.title}"><a href="${p.url}" target="_blank" rel="noopener">${p.title}</a></td>
-    <td class="num">${p.date ? p.date.toLocaleDateString('de-DE') : '–'}</td>
-    <td class="num">${fmt(p.imp)}</td>
-    <td class="num">${fmt(p.eng)}</td>
-    <td class="num ${p.er >= 0.03 ? 'er-hi' : ''}">${fmtPct(p.er)}</td>
-  </tr>`).join('');
-}
-document.querySelectorAll('#postsTable th').forEach(th => {
-  th.addEventListener('click', () => {
-    const key = th.dataset.sort;
-    sortState = { key, dir: sortState.key === key ? -sortState.dir : -1 };
-    document.querySelectorAll('#postsTable th').forEach(h => h.innerHTML = h.innerHTML.replace(/ [▾▴]$/, ''));
-    th.innerHTML += sortState.dir === -1 ? ' ▾' : ' ▴';
-    renderPosts(currentPosts);
-  });
-});
 
 function renderDemographics(demo) {
   document.getElementById('demographics').innerHTML = Object.entries(demo).map(([cat, rows]) => `
@@ -674,6 +827,11 @@ dz.addEventListener('drop', e => {
 });
 fi.addEventListener('change', () => { if (fi.files[0]) loadFile(fi.files[0]); });
 
+function hideIntro() {
+  dz.style.display = 'none';
+  document.querySelector('.privacy').style.display = 'none';
+}
+
 async function loadFile(file) {
   try {
     const buf = await file.arrayBuffer();
@@ -681,8 +839,7 @@ async function loadFile(file) {
     const model = buildModel(parseWorkbook(wb));
     if (!model.months.length) throw new Error('Keine Daten gefunden — ist das der LinkedIn-AggregateAnalytics-Export?');
     render(model);
-    dz.style.display = 'none';
-    document.querySelector('.privacy').style.display = 'none';
+    hideIntro();
   } catch (err) {
     alert('Datei konnte nicht gelesen werden: ' + err.message);
   }
@@ -699,14 +856,11 @@ document.getElementById('demoBtn').addEventListener('click', e => {
   e.stopPropagation();
   fetch('demo-data.json').then(r => r.json()).then(raw => {
     render(buildModel(reviveRaw(raw)));
-    dz.style.display = 'none';
-    document.querySelector('.privacy').style.display = 'none';
+    hideIntro();
   });
 });
 
 // ---------- Privates Deployment: verschlüsselte Daten + Passwort ----------
-// Liegt neben der Seite eine data.enc.json (AES-GCM, Key aus Passwort via PBKDF2),
-// wird das Passwort-Overlay gezeigt und nach Entsperren direkt gerendert.
 
 async function decrypt(encObj, password) {
   const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
@@ -727,15 +881,16 @@ async function decrypt(encObj, password) {
     lock.style.display = 'grid';
     const tryUnlock = async () => {
       const pw = document.getElementById('pw').value;
+      let raw;
       try {
-        const raw = await decrypt(encObj, pw);
-        lock.style.display = 'none';
-        render(buildModel(reviveRaw(raw)));
-        dz.style.display = 'none';
-        document.querySelector('.privacy').style.display = 'none';
+        raw = await decrypt(encObj, pw);
       } catch {
         document.getElementById('pwErr').textContent = 'Falsches Passwort.';
+        return;
       }
+      lock.style.display = 'none';
+      render(buildModel(reviveRaw(raw)));
+      hideIntro();
     };
     document.getElementById('unlockBtn').addEventListener('click', tryUnlock);
     document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
