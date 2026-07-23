@@ -358,13 +358,6 @@
     <div id="consistencyInsight" style="margin-top:12px"></div>
   </div>
 
-  <div class="card">
-    <h2>Reflexion</h2>
-    <p class="desc">Automatisch abgeleitete Beobachtungen aus deinen Zahlen.</p>
-    <div id="insights"></div>
-  </div>
-</div>
-
 <div id="tooltip"></div>
 
 <div id="lock">
@@ -869,6 +862,7 @@ function renderKpis(range) {
 // ---------- Posts-Tabelle ----------
 
 let sortState = { key: 'imp', dir: -1 };
+let postsExpanded = false;
 
 function renderPosts() {
   if (!currentModel) return;
@@ -925,13 +919,21 @@ function renderPosts() {
     if (typeof va === 'string') return va.localeCompare(vb) * sortState.dir;
     return (va - vb) * sortState.dir;
   });
-  document.querySelector('#postsTable tbody').innerHTML = sorted.map(p => `<tr>
+  // Erst Top 10, Rest hinter "Weitere anzeigen" (nur in der ungefilterten Ansicht)
+  const collapsible = state.selected == null && !postsExpanded && sorted.length > 10;
+  const visible = collapsible ? sorted.slice(0, 10) : sorted;
+  const row = p => `<tr>
     <td class="date">${fmtDate(p.date)}</td>
     <td class="title" title="${p.title}"><a href="${p.url}" target="_blank" rel="noopener">${p.title}</a></td>
     <td class="num">${fmt(p.imp)}</td>
     <td class="num">${fmt(p.eng)}</td>
     <td class="num ${p.er >= 0.03 ? 'er-hi' : ''}">${fmtPct(p.er)}</td>
-  </tr>`).join('') || `<tr><td colspan="5" style="color:var(--text-muted)">Keine Top-50-Beiträge in diesem Zeitraum.</td></tr>`;
+  </tr>`;
+  const moreRow = collapsible ? `<tr><td colspan="5" style="text-align:center;padding:12px">
+    <button id="showMorePosts" style="font:inherit;font-size:0.8rem;font-weight:600;padding:7px 18px;border-radius:999px;border:1px solid var(--baseline);background:none;color:var(--accent);cursor:pointer">Weitere ${sorted.length - 10} Beiträge anzeigen ▾</button>
+  </td></tr>` : '';
+  document.querySelector('#postsTable tbody').innerHTML = (visible.map(row).join('') + moreRow) || `<tr><td colspan="5" style="color:var(--text-muted)">Keine Top-50-Beiträge in diesem Zeitraum.</td></tr>`;
+  document.getElementById('showMorePosts')?.addEventListener('click', () => { postsExpanded = true; renderPosts(); });
 }
 
 document.querySelectorAll('#postsTable th').forEach(th => {
@@ -1022,7 +1024,6 @@ function render(model) {
   renderFunnel(model);
   renderDemographics(model.demographics);
   renderConsistency(model);
-  renderInsights(model);
 }
 
 // ---------- Konsistenz (konservativ: nur klare Fälle bewerten) ----------
@@ -1078,8 +1079,13 @@ function renderConsistency(model) {
 
   // Muster-Einordnung: nur bei ausreichender Datenlage urteilen
   const el = document.getElementById('consistencyInsight');
+  // Fallprüfung 50er-Kappe: Bei vollen Top 50 fehlen ältere/schwächere Beiträge —
+  // die Aktiv-Erkennung stützt sich dann auf die (immer vollständigen) Tages-Impressions.
+  const capNote = model.posts.length >= 50
+    ? `<div class="insight"><span>ℹ️ Die Beitragsliste ist bei 50 gekappt — für Wochen ohne gelisteten Beitrag zählt hier das Impressions-Signal (die Tagesdaten sind im Export immer vollständig). Bei sehr aktiven Profilen ist „aktiv" daher zuverlässig, die Beitragszählung aber nur eine Untergrenze.</span></div>`
+    : '';
   if (weeks.length < 12) {
-    el.innerHTML = `<div class="insight"><span>ℹ️ Noch zu wenig Historie für eine Muster-Aussage (unter 12 Wochen). Sammle weiter — ab ~3 Monaten wird das Bild belastbar.</span></div>`;
+    el.innerHTML = capNote + `<div class="insight"><span>ℹ️ Noch zu wenig Historie für eine Muster-Aussage (unter 12 Wochen). Sammle weiter — ab ~3 Monaten wird das Bild belastbar.</span></div>`;
     return;
   }
   const rate = nActive / weeks.length;
@@ -1094,7 +1100,7 @@ function renderConsistency(model) {
   else if (recentRate < rate - 0.25) msg = `⚠️ Muster gebrochen: Historisch ${Math.round(rate * 100)} % aktive Wochen, zuletzt nur ${Math.round(recentRate * 100)} %. Das ist die Sorte Lücke, die dich in den inaktiven Monaten Reichweite gekostet hat.`;
   else if (rate >= 0.8) msg = `✅ Stabiles Muster: ${Math.round(rate * 100)} % aktive Wochen über die gesamte Historie. Konsistenz ist bei dir kein Engpass.`;
   else msg = `📊 Dein Muster ist wechselhaft (${Math.round(rate * 100)} % aktive Wochen, längste Pause ${longestGap} Wochen). Die ehrlichste Kennzahl zum Verbessern: den aktuellen Streak (${streak} Wo.) einfach nicht abreißen lassen.`;
-  el.innerHTML = `<div class="insight"><span>${msg}</span></div>`;
+  el.innerHTML = capNote + `<div class="insight"><span>${msg}</span></div>`;
 }
 
 // ---------- Report (PDF via Druckdialog, rein clientseitig) ----------
@@ -1108,7 +1114,13 @@ document.getElementById('reportBtn').addEventListener('click', () => {
 });
 
 function renderDemographics(demo) {
-  document.getElementById('demographics').innerHTML = Object.entries(demo).map(([cat, rows]) => `
+  // Feste Wunsch-Reihenfolge; unbekannte Kategorien (z. B. EN-Exporte) hinten anhängen
+  const ORDER = ['Branche', 'Firmengröße', 'Position', 'Karrierestufe', 'Standort', 'Unternehmen'];
+  const entries = Object.entries(demo).sort((a, b) => {
+    const ia = ORDER.indexOf(a[0]), ib = ORDER.indexOf(b[0]);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+  document.getElementById('demographics').innerHTML = entries.map(([cat, rows]) => `
     <div class="demo-block"><h3>${cat}</h3>
       ${rows.slice(0, 8).map(r => `
         <div class="demo-row">
@@ -1119,50 +1131,6 @@ function renderDemographics(demo) {
     </div>`).join('');
 }
 
-function renderInsights(model) {
-  const out = [];
-  const M = model.months;
-  const best = [...M].sort((a, b) => b.imp - a.imp)[0];
-  if (best) out.push(['📈', `Bester Monat: <strong>${best.label}</strong> mit ${fmt(best.imp)} Impressions und ${fmt(best.fol)} neuen Followern.`]);
-
-  const dead = M.filter(m => m.imp < 200).length;
-  if (dead > 0 && M.length > 3) {
-    const act = M.filter(m => m.imp >= 200);
-    const avgActive = act.length ? Math.round(act.reduce((s, m) => s + m.imp, 0) / act.length) : 0;
-    out.push(['⏸️', `<strong>${dead} von ${M.length} Monaten</strong> waren praktisch inaktiv (&lt; 200 Impressions). In aktiven Monaten liegst du im Schnitt bei ${fmt(avgActive)} Impressions — Konsistenz ist dein größter Hebel.`]);
-  }
-
-  const withER = model.posts.filter(p => p.er != null && p.imp >= 100);
-  if (withER.length >= 3) {
-    const topER = [...withER].sort((a, b) => b.er - a.er)[0];
-    const topImp = [...withER].sort((a, b) => b.imp - a.imp)[0];
-    out.push(['🏆', `Reichweiten-Sieger: „${topImp.title}“ (${fmt(topImp.imp)} Impressions). Engagement-Sieger: „${topER.title}“ (${fmtPct(topER.er)} ER). Reichweite zeigt, was der Algorithmus mag — ER zeigt, was deine Leute mögen. Prüfe bei beiden in LinkedIn den Nicht-Follower-Anteil: das trennt Reichweiten-Formate von Vertrauens-Formaten.`]);
-  }
-
-  if (model.avgER != null) {
-    const bench = model.avgER >= 0.02 ? 'solide (≥ 2-%-Richtwert)' : 'ausbaufähig — unter dem üblichen 2-%-Richtwert';
-    out.push(['💬', `Ø Engagement-Rate über alles: <strong>${fmtPct(model.avgER)}</strong> (${bench}). Posts mit persönlicher Geschichte oder klarer Meinung heben die ER meist am stärksten.`]);
-  }
-
-  const fPerImp = model.totalImp ? model.totalFol / model.totalImp * 1000 : null;
-  if (fPerImp != null) out.push(['👥', `Du gewinnst ca. <strong>${fPerImp.toLocaleString('de-DE', { maximumFractionDigits: 1 })} Follower pro 1.000 Impressions</strong>. Mehr Reichweite zahlt also direkt auf Wachstum ein.`]);
-
-  // Audience-Fit: Entscheider-Anteil aus der Demografie
-  const career = model.demographics?.['Karrierestufe'] || model.demographics?.['Seniority'] || [];
-  const decisionRoles = /inhaber|geschäftsführ|partner|vp|director|owner|founder|cxo/i;
-  const decPct = career.filter(r => decisionRoles.test(r.name)).reduce((s, r) => s + r.pct, 0);
-  if (decPct > 0) {
-    out.push(['🎯', `<strong>${decPct.toLocaleString('de-DE', { maximumFractionDigits: 0 })} %</strong> deiner Betrachter:innen sind Entscheider (Inhaber, Geschäftsführung, Director, VP, Partner). ${decPct >= 25 ? 'Starker Audience-Fit — dein Content erreicht die Leute, die kaufen können. Konvertierung ist eher eine CTA-Frage als eine Reichweiten-Frage.' : 'Wenn du an Selbstständige und Unternehmen verkaufst, lohnt es sich, Themen und Sprache stärker auf Entscheider auszurichten.'} Wichtig: LinkedIn zeigt nur, <em>wer dich sieht</em> — nicht, wer engagiert oder konvertiert. Diese Verknüpfung gibt kein Export her; tracke Anfragen deshalb im Funnel-Bereich.`]);
-  }
-
-  if (model.summary.impressions && model.summary.reached) {
-    const freq = model.summary.impressions / model.summary.reached;
-    out.push(['🔁', `Jede erreichte Person sieht dich im Schnitt <strong>${freq.toLocaleString('de-DE', { maximumFractionDigits: 1 })}×</strong>. Unter 3× braucht Vertrauen lange — regelmäßiges Posten erhöht die Kontaktfrequenz bei denselben Leuten.`]);
-  }
-
-  document.getElementById('insights').innerHTML = out.map(([icon, html]) =>
-    `<div class="insight"><span class="icon">${icon}</span><span>${html}</span></div>`).join('');
-}
 
 // ---------- File handling ----------
 
@@ -1186,8 +1154,19 @@ async function loadFile(file) {
   try {
     const buf = await file.arrayBuffer();
     const wb = XLSX.read(buf);
+    // Format-Prüfung: der LinkedIn-Export (7 oder 365 Tage) hat feste Tabellenblätter
+    const required = [
+      { keys: ['AUFFINDBARKEIT', 'DISCOVERY'], name: 'AUFFINDBARKEIT / DISCOVERY' },
+      { keys: ['ENGAGEMENT'], name: 'ENGAGEMENT' },
+      { keys: ['FOLLOWER'], name: 'FOLLOWER' },
+    ];
+    const missing = required.filter(r => !findSheet(wb, r.keys)).map(r => r.name);
+    if (missing.length) {
+      alert(`Diese Datei entspricht nicht dem LinkedIn-Export-Format.\n\nEs fehlen die Tabellenblätter: ${missing.join(', ')}.\n\nSo bekommst du die richtige Datei:\nLinkedIn → Profil → Analytics → Beitragsimpressions → Exportieren (7 oder 365 Tage) → „LinkedIn_AggregateAnalytics_….xlsx"`);
+      return;
+    }
     const model = buildModel(parseWorkbook(wb));
-    if (!model.months.length) throw new Error('Keine Daten gefunden — ist das der LinkedIn-AggregateAnalytics-Export?');
+    if (!model.months.length) throw new Error('Die Tabellenblätter sind vorhanden, enthalten aber keine lesbaren Tagesdaten.');
     render(model);
     hideIntro();
   } catch (err) {
