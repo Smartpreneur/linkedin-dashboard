@@ -360,15 +360,26 @@
     <div id="consistencyInsight" style="margin-top:12px"></div>
   </div>
 
-  <div class="card" id="mailCard">
-    <h2>Auswertung per E-Mail erhalten</h2>
-    <p class="desc">Lass dir die Kern-KPIs + PDF-Report zuschicken. (Deine Daten werden hier nicht gespeichert — darum kommt die Auswertung per Mail. Max. 2 pro Tag.)</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-      <input type="email" id="mailInput" placeholder="deine@email.de" style="flex:1;min-width:220px;font:inherit;padding:10px 14px;border:1px solid var(--baseline);border-radius:10px">
+  <div class="card" id="mailCard" style="background:var(--accent);border:none;color:#fff">
+    <h2 style="color:#fff;font-size:1.2rem">📬 Auswertung per E-Mail erhalten</h2>
+    <p class="desc" style="color:rgba(255,255,255,0.85)">Lass dir die Kern-KPIs + PDF-Report zuschicken. (Deine Daten werden hier nicht gespeichert — darum kommt die Auswertung per Mail. Max. 2 pro Tag.)</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:stretch">
+      <input type="email" id="mailInput" placeholder="deine@email.de" style="flex:1;min-width:260px;font:inherit;font-size:1.05rem;padding:16px 20px;border:none;border-radius:14px;background:#fff;color:var(--text-primary)">
       <input type="text" id="mailWebsite" style="display:none" tabindex="-1" autocomplete="off">
-      <button class="report-btn" id="mailBtn" type="button" style="margin-left:0">Analyse zuschicken →</button>
+      <button id="mailBtn" type="button" style="font:inherit;font-size:1rem;font-weight:700;padding:16px 28px;border-radius:14px;border:none;background:var(--text-primary);color:#fff;cursor:pointer">Analyse zuschicken →</button>
     </div>
-    <div id="mailStatus" style="font-size:0.8rem;margin-top:8px;min-height:1.2em;color:var(--text-secondary)"></div>
+    <div id="mailStatus" style="font-size:0.84rem;margin-top:10px;min-height:1.2em;color:#fff;font-weight:600"></div>
+  </div>
+
+  <div class="card" id="checkCard">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:260px">
+        <h2>Wo liegt dein Engpass — und willst du ihn mit KI angehen?</h2>
+        <p class="desc" style="margin-bottom:0">Reichweite ist nur ein Baustein. Der kostenlose Engpass-Check zeigt dir in 3 Minuten, welcher Hebel in deinem Business gerade den größten Unterschied macht.</p>
+      </div>
+      <a href="https://kuehn.tech/check" target="_blank" rel="noopener" class="report-btn" style="text-decoration:none;margin-left:0;flex-shrink:0">Engpass-Check machen →</a>
+    </div>
+    <div style="margin-top:14px;font-size:0.82rem;color:var(--text-muted)">Ein Tool von <a href="https://kuehn.tech" style="color:var(--text-primary);font-weight:700">Kuehn<span style="color:var(--kuehn)">.Tech</span></a> — AI-Systeme für Selbstständige &amp; Unternehmer</div>
   </div>
 </div>
 
