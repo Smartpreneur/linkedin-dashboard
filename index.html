@@ -313,7 +313,7 @@
   </div>
 
   <div class="card">
-    <h2 id="postsHeading">Top-Beiträge (max. 50)</h2>
+    <h2 id="postsHeading">Top-Beiträge <span style="font-weight:400;color:var(--text-secondary)">(max. 50)</span></h2>
     <div id="coverage" style="margin:10px 0 14px"></div>
     <p class="desc">Standard: nach Impressions sortiert — Klick auf eine Spalte sortiert um. ER ≥ 3&nbsp;% ist grün markiert. Reaktionen/Kommentare/Saves pro Beitrag stecken leider nicht im Aggregate-Export — die zeigt LinkedIn nur pro Beitrag in der App (Beitrag → Analytics ansehen); dort siehst du auch den Follower- vs. Nicht-Follower-Anteil.</p>
     <div class="selection-note" id="selectionNote">
@@ -896,7 +896,7 @@ function renderPosts() {
     }
   } else {
     note.style.display = 'none';
-    heading.textContent = 'Top-Beiträge (max. 50)';
+    heading.innerHTML = 'Top-Beiträge <span style="font-weight:400;color:var(--text-secondary)">(max. 50)</span>';
   }
 
   // Abdeckung: wie viele der Gesamt-Impressions stecken in den Top 50?
