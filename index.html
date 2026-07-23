@@ -277,6 +277,7 @@
       </div>
     </div>
     <button class="report-btn" id="reportBtn" type="button">Report als PDF ⬇</button>
+    <button class="report-btn" id="reloadBtn" type="button" style="background:none;color:var(--accent);border:1px solid var(--accent);margin-left:8px" title="Neuen LinkedIn-Export laden — ersetzt die aktuelle Ansicht">⟳ Neue Daten</button>
   </div>
   <div id="reportMeta"></div>
 
@@ -1169,6 +1170,24 @@ document.getElementById('demoBtn').addEventListener('click', e => {
   });
 });
 
+// "Neue Daten laden": Dropzone wieder einblenden — neuer Export ersetzt die Ansicht (nur im RAM)
+document.getElementById('reloadBtn').addEventListener('click', () => {
+  dz.style.display = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// ---------- Lokaler Modus: liegt eine data.json neben der Seite, direkt laden (kein Passwort) ----------
+
+async function tryPlainData() {
+  try {
+    const res = await fetch('data.json');
+    if (!res.ok) return false;
+    render(buildModel(reviveRaw(await res.json())));
+    hideIntro();
+    return true;
+  } catch { return false; }
+}
+
 // ---------- Privates Deployment: verschlüsselte Daten + Passwort ----------
 
 async function decrypt(encObj, password) {
@@ -1182,6 +1201,7 @@ async function decrypt(encObj, password) {
 }
 
 (async () => {
+  if (await tryPlainData()) return;
   try {
     const res = await fetch('data.enc.json');
     if (!res.ok) return;
