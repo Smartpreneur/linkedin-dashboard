@@ -206,6 +206,16 @@
     margin-left: auto;
   }
   .report-btn:hover { filter: brightness(1.08); }
+  /* Shine-Effekt wie auf kuehn.tech */
+  .shine-btn { position: relative; overflow: hidden; }
+  .shine-btn::before {
+    content: ""; position: absolute; top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
+    animation: shine 5s infinite; pointer-events: none;
+  }
+  .shine-btn span { position: relative; z-index: 1; }
+  @keyframes shine { 0% { left: -100%; } 50% { left: 100%; } 100% { left: 100%; } }
 
   /* Konsistenz */
   .streak-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
@@ -261,6 +271,11 @@
   <button id="demoBtn" type="button">Demo-Daten ansehen</button>
 </div>
 <p class="privacy">🔒 Deine Daten bleiben im Browser — nichts wird hochgeladen.</p>
+<p class="privacy" id="startAvatar" style="margin-top:4px">
+  <a href="https://kuehn.tech" target="_blank" rel="noopener" title="Kuehn.Tech">
+    <img src="christopher.png" alt="Christopher Kühn — Kuehn.Tech" width="88" height="88" style="border-radius:50%;object-fit:cover;box-shadow:0 6px 20px rgba(0,0,0,0.12)">
+  </a>
+</p>
 
 <div id="dashboard">
   <div class="toolbar">
@@ -371,20 +386,14 @@
     <div id="mailStatus" style="font-size:0.84rem;margin-top:10px;min-height:1.2em;color:#fff;font-weight:600"></div>
   </div>
 
-  <div class="card" id="checkCard">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
-      <div style="flex:1;min-width:260px">
-        <h2>Wo liegt dein Engpass — und willst du ihn mit KI angehen?</h2>
-        <p class="desc" style="margin-bottom:0">Reichweite ist nur ein Baustein. Der kostenlose Engpass-Check zeigt dir in 3 Minuten, welcher Hebel in deinem Business gerade den größten Unterschied macht.</p>
-      </div>
-      <a href="https://kuehn.tech/check" target="_blank" rel="noopener" class="report-btn" style="text-decoration:none;margin-left:0;flex-shrink:0">Engpass-Check machen →</a>
-    </div>
-    <div style="display:flex;align-items:center;gap:14px;margin-top:18px;padding-top:16px;border-top:1px solid var(--grid)">
-      <img src="christopher.png" alt="Christopher Kühn" width="56" height="56" style="border-radius:50%;object-fit:cover;flex-shrink:0">
-      <div style="font-size:0.84rem;color:var(--text-secondary);line-height:1.45">
-        <strong style="color:var(--text-primary)">Christopher Kühn</strong> · Ein Tool von <a href="https://kuehn.tech" style="color:var(--text-primary);font-weight:700">Kuehn<span style="color:var(--kuehn)">.Tech</span></a><br>
-        AI-Systeme für Selbstständige &amp; Unternehmer — alle Auswertungen laufen lokal in deinem Browser.
-      </div>
+  <div class="card" id="checkCard" style="text-align:center">
+    <h2>Wo liegt dein Engpass — und willst du ihn mit KI angehen?</h2>
+    <p class="desc" style="max-width:560px;margin:6px auto 20px">Reichweite ist nur ein Baustein. Der kostenlose Engpass-Check zeigt dir in 3 Minuten, welcher Hebel in deinem Business gerade den größten Unterschied macht.</p>
+    <a href="https://kuehn.tech/check" target="_blank" rel="noopener" class="report-btn shine-btn" style="text-decoration:none;margin-left:0;display:inline-block;font-size:1rem;padding:14px 30px"><span>Engpass-Check machen →</span></a>
+    <div style="margin-top:26px">
+      <a href="https://kuehn.tech" target="_blank" rel="noopener" title="Kuehn.Tech">
+        <img src="christopher.png" alt="Christopher Kühn — Kuehn.Tech" width="104" height="104" style="border-radius:50%;object-fit:cover;box-shadow:0 6px 20px rgba(0,0,0,0.12)">
+      </a>
     </div>
   </div>
 </div>
@@ -1191,6 +1200,7 @@ fi.addEventListener('change', () => { if (fi.files[0]) loadFile(fi.files[0]); })
 function hideIntro() {
   dz.style.display = 'none';
   document.querySelector('.privacy').style.display = 'none';
+  document.getElementById('startAvatar').style.display = 'none';
 }
 
 async function loadFile(file) {
