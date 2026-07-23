@@ -254,6 +254,13 @@
   <div class="card">
     <h2>Aktivität: Impressions, Follower &amp; Engagement</h2>
     <p class="desc">Linke Achse: Impressions (Balken). Rechte Achse: neue Follower (Linie). Ein Hover zeigt alle Werte. Klick auf einen Balken filtert die Beiträge darunter auf diesen Zeitraum.</p>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <span style="font-size:0.78rem;font-weight:600;color:var(--text-secondary)">Darstellung</span>
+      <div class="seg" id="cumSeg">
+        <button data-cum="0" class="active">Normal</button>
+        <button data-cum="1">Kumulativ</button>
+      </div>
+    </div>
     <div class="legend">
       <span class="item"><span class="swatch" style="background:var(--series-1)"></span>Impressions (linke Achse)</span>
       <span class="item"><span class="swatch" style="background:var(--series-2)"></span>Neue Follower (rechte Achse)</span>
@@ -501,7 +508,7 @@ function makeBins(model, gran, range) {
 
 // ---------- Chart-State ----------
 
-const state = { gran: 'daily', rangeMode: 'days', rangeDays: 7, customStart: null, customEnd: null, customBack: null, selected: null };
+const state = { gran: 'daily', rangeMode: 'days', rangeDays: 7, customStart: null, customEnd: null, customBack: null, selected: null, cum: false };
 let currentModel = null;
 let currentBins = [];
 
@@ -518,6 +525,10 @@ function showTip(evt, html) {
 function hideTip() { tooltip.style.display = 'none'; }
 
 function binTip(b) {
+  if (b.periodImp != null) return `<div class="t-title">${b.longLabel} (kumuliert)</div>
+    <div class="t-row"><span class="sw" style="background:var(--series-1)"></span>Impressions: ${fmt(b.imp)} (Zeitraum: +${fmt(b.periodImp)})</div>
+    <div class="t-row"><span class="sw" style="background:var(--series-2)"></span>Follower: ${fmt(b.fol)} (Zeitraum: +${fmt(b.periodFol)})</div>
+    <div class="t-row"><span class="sw" style="background:var(--series-3)"></span>Engagements: ${fmt(b.eng)} (Zeitraum: +${fmt(b.periodEng)})</div>`;
   return `<div class="t-title">${b.longLabel}</div>
     <div class="t-row"><span class="sw" style="background:var(--series-1)"></span>Impressions: ${fmt(b.imp)}</div>
     <div class="t-row"><span class="sw" style="background:var(--series-2)"></span>Neue Follower: ${fmt(b.fol)}</div>
@@ -534,9 +545,17 @@ function niceMax(v) {
 }
 
 function renderCombined() {
-  const bins = currentBins;
+  let bins = currentBins;
   const el = document.getElementById('chartCombined');
   if (!bins.length) { el.innerHTML = '<p style="color:var(--text-muted);font-size:0.84rem">Keine Daten im gewählten Zeitraum.</p>'; return; }
+
+  if (state.cum) {
+    let ci = 0, cf = 0, ce = 0;
+    bins = bins.map(b => {
+      ci += b.imp; cf += b.fol; ce += b.eng;
+      return { ...b, imp: ci, fol: cf, eng: ce, periodImp: b.imp, periodFol: b.fol, periodEng: b.eng };
+    });
+  }
 
   const n = bins.length;
   const W = Math.min(Math.max(640, n * 46 + 100), 1040);
@@ -689,6 +708,14 @@ document.querySelectorAll('#granSeg button').forEach(btn => {
     state.gran = btn.dataset.gran;
     state.selected = null;
     refreshBins();
+  });
+});
+document.querySelectorAll('#cumSeg button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#cumSeg button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.cum = btn.dataset.cum === '1';
+    renderCombined();
   });
 });
 document.getElementById('clearSelection').addEventListener('click', () => {
