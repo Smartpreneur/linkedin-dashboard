@@ -87,24 +87,28 @@
   .chart-wrap { overflow-x: auto; }
   svg text { font-family: inherit; }
 
-  /* Filter-Pills */
-  .controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin-bottom: 14px; }
-  .control-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .control-group .cl { font-size: 0.74rem; color: var(--text-muted); margin-right: 2px; }
-  .pill {
-    font: inherit; font-size: 0.78rem; font-weight: 600;
-    padding: 4px 12px; border-radius: 999px;
-    border: 1px solid var(--baseline); background: none;
-    color: var(--text-secondary); cursor: pointer;
+  /* Toolbar: Zeitraum & Ansicht */
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center;
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 18px; margin-bottom: 18px;
+    box-shadow: var(--shadow);
   }
-  .pill:hover { border-color: var(--accent); color: var(--accent); }
-  .pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .pill-input {
-    width: 64px; font: inherit; font-size: 0.78rem;
-    padding: 4px 10px; border-radius: 999px;
+  .toolbar .tb-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .toolbar label { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); }
+  .toolbar select, .toolbar input {
+    font: inherit; font-size: 0.84rem;
+    padding: 7px 10px; border-radius: 10px;
     border: 1px solid var(--baseline);
+    background: var(--surface-1); color: var(--text-primary);
   }
-  .pill-input:focus { outline: 2px solid rgba(10,102,194,0.3); }
+  .toolbar select:focus, .toolbar input:focus { outline: 2px solid rgba(10,102,194,0.3); border-color: var(--accent); }
+  .toolbar input[type="date"] { width: 138px; }
+  .toolbar input[type="number"] { width: 84px; }
+  #customControls { display: none; align-items: center; gap: 8px; flex-wrap: wrap; }
+  #customControls .or { font-size: 0.74rem; color: var(--text-muted); }
+  .tile .delta.up { color: var(--delta-good); }
+  .tile .delta.down { color: #c0392b; }
 
   .selection-note {
     display: none; align-items: center; gap: 10px;
@@ -205,32 +209,45 @@
 <p class="privacy">🔒 Deine Daten bleiben im Browser — nichts wird hochgeladen.</p>
 
 <div id="dashboard">
+  <div class="toolbar">
+    <div class="tb-group">
+      <label for="rangeSelect">Zeitraum</label>
+      <select id="rangeSelect">
+        <option value="7" selected>Letzte 7 Tage</option>
+        <option value="14">Letzte 14 Tage</option>
+        <option value="28">Letzte 28 Tage</option>
+        <option value="90">Letzte 90 Tage</option>
+        <option value="180">Letzte 180 Tage</option>
+        <option value="365">Letzte 365 Tage</option>
+        <option value="all">Gesamter Zeitraum</option>
+        <option value="custom">Individuell…</option>
+      </select>
+    </div>
+    <div class="tb-group" id="customControls">
+      <input type="date" id="customStart" title="Startdatum">
+      <span class="or">bis</span>
+      <input type="date" id="customEnd" title="Enddatum">
+      <span class="or">oder</span>
+      <input type="number" id="customBack" min="2" max="730" placeholder="Tage…" title="So viele Tage zurück">
+    </div>
+    <div class="tb-group">
+      <label for="granSelect">Ansicht</label>
+      <select id="granSelect">
+        <option value="daily" selected>Tag</option>
+        <option value="weekly">Woche</option>
+        <option value="monthly">Monat</option>
+      </select>
+    </div>
+  </div>
+
   <div class="kpis" id="kpis"></div>
 
   <div class="card">
     <h2>Aktivität: Impressions, Follower &amp; Engagement</h2>
-    <p class="desc">Beide Panels teilen sich die Zeitachse — ein Hover zeigt alle Werte. Klick auf einen Balken filtert die Beiträge darunter auf diesen Zeitraum.</p>
-    <div class="controls">
-      <div class="control-group" id="rangeGroup">
-        <span class="cl">Zeitraum</span>
-        <button class="pill" data-days="7">7 T</button>
-        <button class="pill" data-days="14">14 T</button>
-        <button class="pill" data-days="28">28 T</button>
-        <button class="pill" data-days="90">90 T</button>
-        <button class="pill" data-days="180">180 T</button>
-        <button class="pill active" data-days="365">365 T</button>
-        <input class="pill-input" id="customDays" type="number" min="2" max="730" placeholder="Tage…" title="Individueller Zeitraum in Tagen">
-      </div>
-      <div class="control-group" id="granGroup">
-        <span class="cl">Ansicht</span>
-        <button class="pill" data-gran="daily">Tag</button>
-        <button class="pill" data-gran="weekly">Woche</button>
-        <button class="pill active" data-gran="monthly">Monat</button>
-      </div>
-    </div>
+    <p class="desc">Linke Achse: Impressions (Balken). Rechte Achse: neue Follower (Linie). Ein Hover zeigt alle Werte. Klick auf einen Balken filtert die Beiträge darunter auf diesen Zeitraum.</p>
     <div class="legend">
-      <span class="item"><span class="swatch" style="background:var(--series-1)"></span>Impressions</span>
-      <span class="item"><span class="swatch" style="background:var(--series-2)"></span>Neue Follower</span>
+      <span class="item"><span class="swatch" style="background:var(--series-1)"></span>Impressions (linke Achse)</span>
+      <span class="item"><span class="swatch" style="background:var(--series-2)"></span>Neue Follower (rechte Achse)</span>
     </div>
     <div class="chart-wrap"><div id="chartCombined"></div></div>
     <div class="legend" style="margin-top:14px">
@@ -410,14 +427,31 @@ function buildModel(data) {
   return { ...data, days, months, totalImp, totalEng, totalFol, avgER: totalImp ? totalEng / totalImp : null };
 }
 
-// Bins nach Granularität + Zeitraum
-function makeBins(model, gran, rangeDays) {
-  let days = model.days;
-  if (rangeDays && days.length) {
-    const maxD = days[days.length - 1].date;
-    const cutoff = new Date(maxD); cutoff.setDate(cutoff.getDate() - rangeDays + 1);
-    days = days.filter(d => d.date >= cutoff);
+// Effektiver Zeitraum {start, end} aus dem State
+function getRange(model) {
+  if (!model.days.length) return { start: null, end: null };
+  const dataEnd = model.days[model.days.length - 1].date;
+  const dataStart = model.days[0].date;
+  if (state.rangeMode === 'all') return { start: dataStart, end: dataEnd };
+  if (state.rangeMode === 'custom') {
+    if (state.customStart && state.customEnd) return { start: state.customStart, end: state.customEnd };
+    if (state.customBack) {
+      const s = new Date(dataEnd); s.setDate(s.getDate() - state.customBack + 1);
+      return { start: s, end: dataEnd };
+    }
+    return { start: dataStart, end: dataEnd };
   }
+  const s = new Date(dataEnd); s.setDate(s.getDate() - state.rangeDays + 1);
+  return { start: s, end: dataEnd };
+}
+
+function daysInRange(model, start, end) {
+  return model.days.filter(d => (!start || d.date >= start) && (!end || d.date <= end));
+}
+
+// Bins nach Granularität + Zeitraum
+function makeBins(model, gran, range) {
+  const days = daysInRange(model, range.start, range.end);
   const bins = [];
   const binMap = new Map();
   for (const d of days) {
@@ -457,7 +491,7 @@ function makeBins(model, gran, rangeDays) {
 
 // ---------- Chart-State ----------
 
-const state = { gran: 'monthly', rangeDays: 365, selected: null };
+const state = { gran: 'daily', rangeMode: 'days', rangeDays: 7, customStart: null, customEnd: null, customBack: null, selected: null };
 let currentModel = null;
 let currentBins = [];
 
@@ -480,7 +514,14 @@ function binTip(b) {
     <div class="t-row"><span class="sw" style="background:var(--series-3)"></span>Engagement: ${fmt(b.eng)} (ER ${fmtPct(b.er)})</div>`;
 }
 
-// ---------- Kombinierter Chart: 2 ausgerichtete Panels + gemeinsamer Hover ----------
+// ---------- Kombinierter Chart: Impressions (linke Achse, Balken) + Follower (rechte Achse, Linie) ----------
+
+function niceMax(v) {
+  if (v <= 0) return 1;
+  const p = Math.pow(10, Math.floor(Math.log10(v)));
+  const f = v / p;
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
+}
 
 function renderCombined() {
   const bins = currentBins;
@@ -488,50 +529,65 @@ function renderCombined() {
   if (!bins.length) { el.innerHTML = '<p style="color:var(--text-muted);font-size:0.84rem">Keine Daten im gewählten Zeitraum.</p>'; return; }
 
   const n = bins.length;
-  const W = Math.min(Math.max(600, n * 46), 1040);
-  const H1 = 190, H2 = 78, GAP = 10, AX = 22;
-  const H = H1 + GAP + H2 + AX;
-  const P = { l: 8, r: 8 };
-  const bw = (W - P.l - P.r) / n;
-  const barFrac = n > 60 ? 0.9 : 0.64;
+  const W = Math.min(Math.max(640, n * 46 + 100), 1040);
+  const H = 240, P = { t: 16, r: 52, b: 24, l: 52 };
+  const plotW = W - P.l - P.r, plotH = H - P.t - P.b;
+  const bw = plotW / n;
+  const barFrac = n > 60 ? 0.9 : 0.6;
   const rounded = bw * barFrac >= 7;
 
-  const maxImp = Math.max(1, ...bins.map(b => b.imp));
-  const maxFol = Math.max(1, ...bins.map(b => b.fol));
-  const maxImpIdx = bins.findIndex(b => b.imp === maxImp);
+  const maxImp = niceMax(Math.max(1, ...bins.map(b => b.imp)));
+  const maxFol = niceMax(Math.max(1, ...bins.map(b => b.fol)));
+  const maxImpIdx = bins.reduce((mi, b, i) => b.imp > bins[mi].imp ? i : mi, 0);
   const labelEvery = Math.max(1, Math.ceil(n / 13));
+  const yImp = v => P.t + plotH * (1 - v / maxImp);
+  const yFol = v => P.t + plotH * (1 - v / maxFol);
+  const base = H - P.b;
 
-  const bar = (x, w, y, base, fill, extra) => rounded
+  const bar = (x, w, y, fill, extra) => rounded
     ? `<path d="M${x},${base} L${x},${y + 3} Q${x},${y} ${x + 3},${y} L${x + w - 3},${y} Q${x + w},${y} ${x + w},${y + 3} L${x + w},${base} Z" fill="${fill}" ${extra}/>`
     : `<rect x="${x}" y="${y}" width="${Math.max(w, 1)}" height="${base - y}" fill="${fill}" ${extra}/>`;
 
-  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="Impressions und neue Follower">`;
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="Impressions (linke Achse) und neue Follower (rechte Achse)">`;
+  // Gridlines + beidseitige Achsen-Ticks (links Impressions-blau, rechts Follower-orange)
   for (const f of [0.5, 1]) {
-    const y = 14 + (H1 - 14 - 4) * (1 - f);
+    const y = P.t + plotH * (1 - f);
     s += `<line x1="${P.l}" y1="${y}" x2="${W - P.r}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`;
+    s += `<text x="${P.l - 8}" y="${y + 3}" text-anchor="end" font-size="10" fill="var(--series-1)">${fmt(maxImp * f)}</text>`;
+    s += `<text x="${W - P.r + 8}" y="${y + 3}" text-anchor="start" font-size="10" fill="var(--series-2)">${fmt(maxFol * f)}</text>`;
   }
-  const base1 = H1, base2 = H1 + GAP + H2;
+  s += `<text x="${P.l - 8}" y="${base + 3}" text-anchor="end" font-size="10" fill="var(--text-muted)">0</text>`;
+  s += `<text x="${W - P.r + 8}" y="${base + 3}" text-anchor="start" font-size="10" fill="var(--text-muted)">0</text>`;
+
+  // Impressions-Balken
   bins.forEach((b, i) => {
     const x = P.l + i * bw + bw * (1 - barFrac) / 2, w = bw * barFrac;
     const sel = state.selected === i;
     const dim = state.selected != null && !sel;
-    const op = dim ? 0.35 : 1;
-    // Panel 1: Impressions
-    const h1 = (H1 - 18) * b.imp / maxImp;
-    s += bar(x, w, base1 - h1, base1, 'var(--series-1)', `opacity="${op}"`);
-    // Panel 2: Follower
-    const h2 = (H2 - 6) * b.fol / maxFol;
-    s += bar(x, w, base2 - h2, base2, 'var(--series-2)', `opacity="${op}"`);
-    if (sel) s += `<rect x="${P.l + i * bw + 0.5}" y="2" width="${bw - 1}" height="${base2 - 2}" fill="none" stroke="var(--accent)" stroke-width="1.5" rx="6"/>`;
+    s += bar(x, w, yImp(b.imp), 'var(--series-1)', `opacity="${dim ? 0.3 : 1}"`);
+    if (sel) s += `<rect x="${P.l + i * bw + 0.5}" y="${P.t - 6}" width="${bw - 1}" height="${plotH + 8}" fill="none" stroke="var(--accent)" stroke-width="1.5" rx="6"/>`;
     if (i === maxImpIdx && b.imp > 0 && !dim)
-      s += `<text x="${P.l + i * bw + bw / 2}" y="${base1 - h1 - 5}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--text-secondary)">${fmt(b.imp)}</text>`;
+      s += `<text x="${P.l + i * bw + bw / 2}" y="${yImp(b.imp) - 5}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--text-secondary)">${fmt(b.imp)}</text>`;
     if (i % labelEvery === 0)
       s += `<text x="${P.l + i * bw + bw / 2}" y="${H - 6}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${b.label}</text>`;
-    // gemeinsamer Hit-Bereich über beide Panels
-    s += `<rect x="${P.l + i * bw}" y="0" width="${bw}" height="${base2}" fill="transparent" data-i="${i}" class="hit" style="cursor:pointer"/>`;
   });
-  s += `<line x1="${P.l}" y1="${base1}" x2="${W - P.r}" y2="${base1}" stroke="var(--baseline)" stroke-width="1"/>`;
-  s += `<line x1="${P.l}" y1="${base2}" x2="${W - P.r}" y2="${base2}" stroke="var(--baseline)" stroke-width="1"/>`;
+
+  // Follower-Linie (rechte Achse)
+  let path = '';
+  bins.forEach((b, i) => {
+    path += (i ? 'L' : 'M') + (P.l + (i + 0.5) * bw).toFixed(1) + ',' + yFol(b.fol).toFixed(1) + ' ';
+  });
+  s += `<path d="${path}" fill="none" stroke="var(--series-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (n <= 60) bins.forEach((b, i) => {
+    const dim = state.selected != null && state.selected !== i;
+    s += `<circle cx="${P.l + (i + 0.5) * bw}" cy="${yFol(b.fol)}" r="4" fill="var(--series-2)" stroke="var(--surface-1)" stroke-width="2" ${dim ? 'opacity="0.3"' : ''}/>`;
+  });
+
+  // Hit-Bereiche
+  bins.forEach((b, i) => {
+    s += `<rect x="${P.l + i * bw}" y="0" width="${bw}" height="${base}" fill="transparent" data-i="${i}" class="hit" style="cursor:pointer"/>`;
+  });
+  s += `<line x1="${P.l}" y1="${base}" x2="${W - P.r}" y2="${base}" stroke="var(--baseline)" stroke-width="1"/>`;
   s += `</svg>`;
   el.innerHTML = s;
 
@@ -586,33 +642,40 @@ function renderER() {
 
 // ---------- Controls ----------
 
-document.querySelectorAll('#rangeGroup .pill').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#rangeGroup .pill').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('customDays').value = '';
-    state.rangeDays = +btn.dataset.days;
-    state.selected = null;
-    refreshBins();
-  });
+document.getElementById('rangeSelect').addEventListener('change', e => {
+  const v = e.target.value;
+  document.getElementById('customControls').style.display = v === 'custom' ? 'flex' : 'none';
+  if (v === 'custom') { state.rangeMode = 'custom'; return; } // erst rechnen, wenn Datum/Tage eingegeben
+  state.rangeMode = v === 'all' ? 'all' : 'days';
+  if (v !== 'all') state.rangeDays = +v;
+  state.selected = null;
+  refreshBins();
 });
-document.getElementById('customDays').addEventListener('change', e => {
-  const v = +e.target.value;
-  if (v >= 2) {
-    document.querySelectorAll('#rangeGroup .pill').forEach(b => b.classList.remove('active'));
-    state.rangeDays = v;
-    state.selected = null;
-    refreshBins();
-  }
-});
-document.querySelectorAll('#granGroup .pill').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#granGroup .pill').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    state.gran = btn.dataset.gran;
-    state.selected = null;
-    refreshBins();
-  });
+function applyCustom() {
+  if (document.getElementById('rangeSelect').value !== 'custom') return;
+  const s = document.getElementById('customStart').value;
+  const e = document.getElementById('customEnd').value;
+  const back = +document.getElementById('customBack').value;
+  state.rangeMode = 'custom';
+  if (s && e) {
+    state.customStart = new Date(s + 'T00:00:00');
+    state.customEnd = new Date(e + 'T23:59:59');
+    state.customBack = null;
+    document.getElementById('customBack').value = '';
+  } else if (back >= 2) {
+    state.customBack = back;
+    state.customStart = state.customEnd = null;
+  } else return;
+  state.selected = null;
+  refreshBins();
+}
+for (const id of ['customStart', 'customEnd', 'customBack']) {
+  document.getElementById(id).addEventListener('change', applyCustom);
+}
+document.getElementById('granSelect').addEventListener('change', e => {
+  state.gran = e.target.value;
+  state.selected = null;
+  refreshBins();
 });
 document.getElementById('clearSelection').addEventListener('click', () => {
   state.selected = null;
@@ -621,8 +684,52 @@ document.getElementById('clearSelection').addEventListener('click', () => {
 
 function refreshBins() {
   if (!currentModel) return;
-  currentBins = makeBins(currentModel, state.gran, state.rangeDays);
+  const range = getRange(currentModel);
+  currentBins = makeBins(currentModel, state.gran, range);
+  renderKpis(range);
   renderCombined(); renderER(); renderPosts();
+}
+
+// ---------- Responsive KPIs mit Vorzeitraum-Vergleich ----------
+
+function sumDays(days) {
+  return days.reduce((a, d) => ({ imp: a.imp + d.imp, eng: a.eng + d.eng, fol: a.fol + d.fol }), { imp: 0, eng: 0, fol: 0 });
+}
+
+function deltaHtml(cur, prev, isPct) {
+  if (prev == null || prev === 0) return '<div class="delta">Vorzeitraum: keine Daten</div>';
+  const ratio = cur / prev - 1;
+  const cls = ratio > 0.001 ? 'up' : ratio < -0.001 ? 'down' : '';
+  const arrow = ratio > 0.001 ? '▲' : ratio < -0.001 ? '▼' : '＝';
+  return `<div class="delta ${cls}">${arrow} ${(Math.abs(ratio) * 100).toLocaleString('de-DE', { maximumFractionDigits: 0 })} % vs. Vorzeitraum</div>`;
+}
+
+function renderKpis(range) {
+  const model = currentModel;
+  const cur = sumDays(daysInRange(model, range.start, range.end));
+  const curER = cur.imp ? cur.eng / cur.imp : null;
+
+  let prev = null, prevER = null;
+  if (range.start && range.end) {
+    const len = Math.round((range.end - range.start) / 86400000) + 1;
+    const dataStart = model.days[0].date;
+    const pEnd = new Date(range.start); pEnd.setDate(pEnd.getDate() - 1);
+    const pStart = new Date(range.start); pStart.setDate(pStart.getDate() - len);
+    if (pEnd >= dataStart && state.rangeMode !== 'all') {
+      prev = sumDays(daysInRange(model, pStart, pEnd));
+      prevER = prev.imp ? prev.eng / prev.imp : null;
+    }
+  }
+
+  const rangeLabel = range.start && range.end ? `${fmtDate(range.start)} – ${fmtDate(range.end)}` : '';
+  document.getElementById('kpis').innerHTML = [
+    ['Impressions', fmt(cur.imp), deltaHtml(cur.imp, prev?.imp)],
+    ['Neue Follower', fmt(cur.fol), deltaHtml(cur.fol, prev?.fol)],
+    ['Engagements', fmt(cur.eng), deltaHtml(cur.eng, prev?.eng)],
+    ['Ø Engagement-Rate', fmtPct(curER), prevER != null ? deltaHtml(curER, prevER) : '<div class="delta"></div>'],
+    ['Follower gesamt', fmt(model.followersTotal), `<div class="delta">Stand Export-Ende</div>`],
+  ].map(([l, v, d]) => `<div class="tile"><div class="label">${l}</div><div class="value">${v}</div>${d}</div>`).join('');
+  document.getElementById('period').textContent = rangeLabel ? 'Zeitraum: ' + rangeLabel : '';
 }
 
 // ---------- Posts-Tabelle ----------
@@ -743,21 +850,11 @@ for (const [id, key] of [['inMsgs', 'msgs'], ['inLeads', 'leads'], ['inProfile',
 function render(model) {
   currentModel = model;
   document.getElementById('dashboard').style.display = 'block';
-  if (model.summary.period) document.getElementById('period').textContent = 'Zeitraum: ' + model.summary.period;
 
   const p = getParams();
   document.getElementById('inMsgs').value = p.msgs ?? '';
   document.getElementById('inLeads').value = p.leads ?? '';
   document.getElementById('inProfile').value = p.profile ?? '';
-
-  const activeMonths = model.months.filter(m => m.imp > 200).length;
-  document.getElementById('kpis').innerHTML = [
-    ['Impressions', fmt(model.summary.impressions ?? model.totalImp), ''],
-    ['Erreichte Personen', fmt(model.summary.reached), ''],
-    ['Follower gesamt', fmt(model.followersTotal), `+${fmt(model.totalFol)} im Zeitraum`],
-    ['Ø Engagement-Rate', fmtPct(model.avgER), ''],
-    ['Aktive Monate', `${activeMonths} / ${model.months.length}`, '> 200 Impressions'],
-  ].map(([l, v, d]) => `<div class="tile"><div class="label">${l}</div><div class="value">${v}</div>${d ? `<div class="delta">${d}</div>` : ''}</div>`).join('');
 
   refreshBins();
   renderFunnel(model);
@@ -804,6 +901,14 @@ function renderInsights(model) {
 
   const fPerImp = model.totalImp ? model.totalFol / model.totalImp * 1000 : null;
   if (fPerImp != null) out.push(['👥', `Du gewinnst ca. <strong>${fPerImp.toLocaleString('de-DE', { maximumFractionDigits: 1 })} Follower pro 1.000 Impressions</strong>. Mehr Reichweite zahlt also direkt auf Wachstum ein.`]);
+
+  // Audience-Fit: Entscheider-Anteil aus der Demografie
+  const career = model.demographics?.['Karrierestufe'] || model.demographics?.['Seniority'] || [];
+  const decisionRoles = /inhaber|geschäftsführ|partner|vp|director|owner|founder|cxo/i;
+  const decPct = career.filter(r => decisionRoles.test(r.name)).reduce((s, r) => s + r.pct, 0);
+  if (decPct > 0) {
+    out.push(['🎯', `<strong>${decPct.toLocaleString('de-DE', { maximumFractionDigits: 0 })} %</strong> deiner Betrachter:innen sind Entscheider (Inhaber, Geschäftsführung, Director, VP, Partner). ${decPct >= 25 ? 'Starker Audience-Fit — dein Content erreicht die Leute, die kaufen können. Konvertierung ist eher eine CTA-Frage als eine Reichweiten-Frage.' : 'Wenn du an Selbstständige und Unternehmen verkaufst, lohnt es sich, Themen und Sprache stärker auf Entscheider auszurichten.'} Wichtig: LinkedIn zeigt nur, <em>wer dich sieht</em> — nicht, wer engagiert oder konvertiert. Diese Verknüpfung gibt kein Export her; tracke Anfragen deshalb im Funnel-Bereich.`]);
+  }
 
   if (model.summary.impressions && model.summary.reached) {
     const freq = model.summary.impressions / model.summary.reached;
