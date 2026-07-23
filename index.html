@@ -41,10 +41,11 @@
   .brand-left h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.01em; }
   .brand-left .tag { font-size: 0.78rem; color: var(--text-muted); margin-top: -2px; }
   .brand-right a.wordmark {
-    font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em;
-    color: var(--kuehn); text-decoration: none;
+    font-size: 1.15rem; font-weight: 800; letter-spacing: -0.01em;
+    color: var(--text-primary); text-decoration: none;
   }
-  .brand-right a.wordmark:hover { text-decoration: underline; }
+  .brand-right a.wordmark .tech { color: var(--kuehn); }
+  .brand-right a.wordmark:hover { opacity: 0.8; }
 
   #dropzone {
     border: 2px dashed var(--baseline);
@@ -234,7 +235,7 @@
     <div class="tag" id="period">Deine Zahlen, besser aufgedröselt als in LinkedIn selbst.</div>
   </div>
   <div class="brand-right">
-    <a class="wordmark" href="https://kuehn.tech" target="_blank" rel="noopener">kuehn.tech</a>
+    <a class="wordmark" href="https://kuehn.tech" target="_blank" rel="noopener">Kuehn<span class="tech">.Tech</span></a>
   </div>
 </header>
 
@@ -368,7 +369,7 @@
   </div>
 </div>
 
-<footer>Alle Auswertungen laufen lokal im Browser · Open Source · <a href="https://github.com/Smartpreneur/linkedin-dashboard">GitHub</a> · ein Tool von <a href="https://kuehn.tech" style="color:var(--kuehn)">kuehn.tech</a></footer>
+<footer>Alle Auswertungen laufen lokal im Browser · Open Source · <a href="https://github.com/Smartpreneur/linkedin-dashboard">GitHub</a> · ein Tool von <a href="https://kuehn.tech" style="color:var(--text-primary);font-weight:700">Kuehn<span style="color:var(--kuehn)">.Tech</span></a></footer>
 </div>
 
 <script>
