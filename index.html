@@ -985,25 +985,29 @@ function renderFunnel(model) {
   // "Erreichte Mitglieder") — hier auf Monate heruntergerechnet, daher Näherung (≈)
   const reachedPerMonth = model.summary.reached ? model.summary.reached / nMonths : null;
 
+  // Bezugsgrößen: Menschen-Stufen beziehen sich auf erreichte Personen (echte Menschen),
+  // nicht auf die vorherige Stufe — Impressions zählen Mehrfach-Sichtungen derselben Person.
+  const peopleBase = reachedPerMonth ?? impPerMonth; // Fallback, falls Export keine erreichten Personen hat
+  const peopleLabel = reachedPerMonth != null ? 'der erreichten Personen' : 'der Impressions';
+  const profile = p.profile > 0 ? +p.profile : null;
+
   const stages = [
     { name: 'Ø Impressions / Monat', v: impPerMonth },
-    reachedPerMonth != null ? { name: 'Ø erreichte Personen / Monat (≈)', v: reachedPerMonth, hint: 'Quelle: „Erreichte Mitglieder“ aus dem Export (Gesamtwert ÷ Monate)' } : null,
-    { name: 'Ø Engagements / Monat', v: engPerMonth },
-    p.profile ? { name: 'Profilaufrufe / Monat', v: p.profile } : null,
-    p.msgs != null && p.msgs !== '' ? { name: 'Nachrichten & Anfragen / Monat', v: +p.msgs } : null,
-    p.leads != null && p.leads !== '' ? { name: 'Qualifizierte Kundenanfragen / Monat', v: +p.leads } : null,
+    reachedPerMonth != null ? { name: 'Ø erreichte Personen / Monat (≈)', v: reachedPerMonth, conv: reachedPerMonth / impPerMonth, ref: 'der Impressions — jede Person sieht dich Ø ' + (impPerMonth / reachedPerMonth).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + '×' } : null,
+    { name: 'Ø Engagements / Monat', v: engPerMonth, conv: impPerMonth > 0 ? engPerMonth / impPerMonth : null, ref: 'der Impressions (Engagement-Rate)' },
+    profile ? { name: 'Profilaufrufe / Monat', v: profile, conv: peopleBase > 0 ? profile / peopleBase : null, ref: peopleLabel + ' besuchen dein Profil' } : null,
+    p.msgs > 0 ? { name: 'Nachrichten & Anfragen / Monat', v: +p.msgs, conv: profile ? +p.msgs / profile : (peopleBase > 0 ? +p.msgs / peopleBase : null), ref: profile ? 'der Profilbesucher schreiben dir' : peopleLabel + ' schreiben dir' } : null,
+    p.leads > 0 ? { name: 'Qualifizierte Kundenanfragen / Monat', v: +p.leads, conv: peopleBase > 0 ? +p.leads / peopleBase : null, ref: peopleLabel + ' werden zur Anfrage — deine Gesamtkonvertierung', highlight: true } : null,
   ].filter(Boolean);
 
   const max = Math.max(...stages.map(s => s.v), 1);
   const el = document.getElementById('funnel');
-  el.innerHTML = stages.map((s, i) => {
-    const prev = i > 0 ? stages[i - 1].v : null;
-    const conv = prev && prev > 0 ? s.v / prev : null;
+  el.innerHTML = stages.map(s => {
     const width = Math.max(1.5, Math.sqrt(s.v / max) * 100);
     return `<div class="funnel-stage">
       <div class="row"><span class="name">${s.name}</span><span class="val">${fmt(s.v)}</span></div>
       <div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div>
-      ${conv != null ? `<div class="conv">↓ ${fmtPct(conv)} der vorherigen Stufe</div>` : ''}
+      ${s.conv != null ? `<div class="conv"${s.highlight ? ' style="color:var(--delta-good);font-weight:600"' : ''}>${(s.conv * 100).toLocaleString('de-DE', { maximumFractionDigits: s.conv < 0.001 ? 3 : 1 })} % ${s.ref}</div>` : ''}
     </div>`;
   }).join('');
 
