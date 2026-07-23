@@ -834,12 +834,26 @@ function renderKpis(range) {
   }
 
   const rangeLabel = range.start && range.end ? `${fmtDate(range.start)} – ${fmtDate(range.end)}` : '';
+
+  // Follower-Stand zum Zeitraum-Ende zurückrechnen + prozentuales Wachstum im Zeitraum
+  let folTile = [fmt(model.followersTotal), '<div class="delta">Stand Export-Ende</div>'];
+  if (model.followersTotal != null && range.end) {
+    const gainedAfter = model.days.filter(d => d.date > range.end).reduce((s, d) => s + d.fol, 0);
+    const endTotal = model.followersTotal - gainedAfter;
+    const startTotal = endTotal - cur.fol;
+    if (startTotal > 0) {
+      const growth = cur.fol / startTotal;
+      const cls = growth > 0.0005 ? 'up' : '';
+      folTile = [fmt(endTotal), `<div class="delta ${cls}">${growth > 0.0005 ? '▲' : '＝'} ${(growth * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 })} % Wachstum im Zeitraum (+${fmt(cur.fol)})</div>`];
+    }
+  }
+
   document.getElementById('kpis').innerHTML = [
     ['Impressions', fmt(cur.imp), deltaHtml(cur.imp, prev?.imp)],
     ['Neue Follower', fmt(cur.fol), deltaHtml(cur.fol, prev?.fol)],
     ['Engagements ⓘ', fmt(cur.eng), deltaHtml(cur.eng, prev?.eng)],
     ['Ø Engagement-Rate', fmtPct(curER), prevER != null ? deltaHtml(curER, prevER) : '<div class="delta"></div>'],
-    ['Follower gesamt', fmt(model.followersTotal), `<div class="delta">Stand Export-Ende</div>`],
+    ['Follower gesamt', ...folTile],
   ].map(([l, v, d]) => `<div class="tile"${l.includes('ⓘ') ? ' title="Engagement = Summe aus Reaktionen, Kommentaren und geteilten Beiträgen (LinkedIn-Definition). Die Aufschlüsselung nach Typ liefert der Export leider nicht — die zeigt LinkedIn nur pro Beitrag in der App." style="cursor:help"' : ''}><div class="label">${l}</div><div class="value">${v}</div>${d}</div>`).join('');
   document.getElementById('period').textContent = rangeLabel ? 'Zeitraum: ' + rangeLabel : '';
 }
