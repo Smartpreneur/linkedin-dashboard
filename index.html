@@ -628,29 +628,58 @@ function renderCombined() {
   s += `<text x="${P.l - 8}" y="${base + 3}" text-anchor="end" font-size="10" fill="var(--text-muted)">0</text>`;
   s += `<text x="${W - P.r + 8}" y="${base + 3}" text-anchor="start" font-size="10" fill="var(--text-muted)">0</text>`;
 
-  // Impressions-Balken
-  bins.forEach((b, i) => {
-    const x = P.l + i * bw + bw * (1 - barFrac) / 2, w = bw * barFrac;
-    const sel = state.selected === i;
-    const dim = state.selected != null && !sel;
-    s += bar(x, w, yImp(b.imp), 'var(--series-1)', `opacity="${dim ? 0.3 : 1}"`);
-    if (sel) s += `<rect x="${P.l + i * bw + 0.5}" y="${P.t - 6}" width="${bw - 1}" height="${plotH + 8}" fill="none" stroke="var(--accent)" stroke-width="1.5" rx="6"/>`;
-    if (i === maxImpIdx && b.imp > 0 && !dim)
-      s += `<text x="${P.l + i * bw + bw / 2}" y="${yImp(b.imp) - 5}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--text-secondary)">${fmt(b.imp)}</text>`;
-    if (i % labelEvery === 0)
-      s += `<text x="${P.l + i * bw + bw / 2}" y="${H - 6}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${b.label}</text>`;
-  });
+  const xc = i => P.l + (i + 0.5) * bw;
 
-  // Follower-Linie (rechte Achse)
-  let path = '';
-  bins.forEach((b, i) => {
-    path += (i ? 'L' : 'M') + (P.l + (i + 0.5) * bw).toFixed(1) + ',' + yFol(b.fol).toFixed(1) + ' ';
-  });
-  s += `<path d="${path}" fill="none" stroke="var(--series-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
-  if (n <= 60) bins.forEach((b, i) => {
-    const dim = state.selected != null && state.selected !== i;
-    s += `<circle cx="${P.l + (i + 0.5) * bw}" cy="${yFol(b.fol)}" r="4" fill="var(--series-2)" stroke="var(--surface-1)" stroke-width="2" ${dim ? 'opacity="0.3"' : ''}/>`;
-  });
+  if (state.cum) {
+    // Kumulativ: wachsende Flächen mit Transparenz (blau Impressions, orange Follower)
+    const area = (yOf, get) => {
+      let d = `M${xc(0).toFixed(1)},${base}`;
+      bins.forEach((b, i) => { d += ` L${xc(i).toFixed(1)},${yOf(get(b)).toFixed(1)}`; });
+      return d + ` L${xc(n - 1).toFixed(1)},${base} Z`;
+    };
+    const line = (yOf, get) => bins.map((b, i) => (i ? 'L' : 'M') + xc(i).toFixed(1) + ',' + yOf(get(b)).toFixed(1)).join(' ');
+    s += `<path d="${area(yImp, b => b.imp)}" fill="var(--series-1)" fill-opacity="0.22"/>`;
+    s += `<path d="${line(yImp, b => b.imp)}" fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linejoin="round"/>`;
+    s += `<path d="${area(yFol, b => b.fol)}" fill="var(--series-2)" fill-opacity="0.22"/>`;
+    s += `<path d="${line(yFol, b => b.fol)}" fill="none" stroke="var(--series-2)" stroke-width="2" stroke-linejoin="round"/>`;
+    if (n <= 60) bins.forEach((b, i) => {
+      s += `<circle cx="${xc(i)}" cy="${yImp(b.imp)}" r="3.5" fill="var(--series-1)" stroke="var(--surface-1)" stroke-width="2"/>`;
+      s += `<circle cx="${xc(i)}" cy="${yFol(b.fol)}" r="3.5" fill="var(--series-2)" stroke="var(--surface-1)" stroke-width="2"/>`;
+    });
+    const lastB = bins[n - 1];
+    s += `<text x="${Math.min(xc(n - 1), W - P.r - 4)}" y="${yImp(lastB.imp) - 8}" text-anchor="end" font-size="10" font-weight="600" fill="var(--series-1)">${fmt(lastB.imp)}</text>`;
+    s += `<text x="${Math.min(xc(n - 1), W - P.r - 4)}" y="${yFol(lastB.fol) + 16}" text-anchor="end" font-size="10" font-weight="600" fill="var(--series-2)">${fmt(lastB.fol)}</text>`;
+    bins.forEach((b, i) => {
+      if (i % labelEvery === 0)
+        s += `<text x="${xc(i)}" y="${H - 6}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${b.label}</text>`;
+    });
+    if (state.selected != null)
+      s += `<line x1="${xc(state.selected)}" y1="${P.t - 4}" x2="${xc(state.selected)}" y2="${base}" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+  } else {
+    // Impressions-Balken
+    bins.forEach((b, i) => {
+      const x = P.l + i * bw + bw * (1 - barFrac) / 2, w = bw * barFrac;
+      const sel = state.selected === i;
+      const dim = state.selected != null && !sel;
+      s += bar(x, w, yImp(b.imp), 'var(--series-1)', `opacity="${dim ? 0.3 : 1}"`);
+      if (sel) s += `<rect x="${P.l + i * bw + 0.5}" y="${P.t - 6}" width="${bw - 1}" height="${plotH + 8}" fill="none" stroke="var(--accent)" stroke-width="1.5" rx="6"/>`;
+      if (i === maxImpIdx && b.imp > 0 && !dim)
+        s += `<text x="${P.l + i * bw + bw / 2}" y="${yImp(b.imp) - 5}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--text-secondary)">${fmt(b.imp)}</text>`;
+      if (i % labelEvery === 0)
+        s += `<text x="${P.l + i * bw + bw / 2}" y="${H - 6}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${b.label}</text>`;
+    });
+
+    // Follower-Linie (rechte Achse)
+    let path = '';
+    bins.forEach((b, i) => {
+      path += (i ? 'L' : 'M') + xc(i).toFixed(1) + ',' + yFol(b.fol).toFixed(1) + ' ';
+    });
+    s += `<path d="${path}" fill="none" stroke="var(--series-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+    if (n <= 60) bins.forEach((b, i) => {
+      const dim = state.selected != null && state.selected !== i;
+      s += `<circle cx="${xc(i)}" cy="${yFol(b.fol)}" r="4" fill="var(--series-2)" stroke="var(--surface-1)" stroke-width="2" ${dim ? 'opacity="0.3"' : ''}/>`;
+    });
+  }
 
   // Hit-Bereiche
   bins.forEach((b, i) => {
