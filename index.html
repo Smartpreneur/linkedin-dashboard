@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LinkedIn Analytics Dashboard</title>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root {
     color-scheme: light;
@@ -339,11 +340,11 @@
 
   <div class="card">
     <h2>Konvertierung: von Impression zu Anfrage</h2>
-    <p class="desc">LinkedIn misst keine Konvertierung — ergänze deine eigenen Zahlen (werden nur lokal in deinem Browser gespeichert), und das Dashboard rechnet dir den kompletten Funnel durch.</p>
+    <p class="desc">Trag deine Zahlen ein (Beispiel: 500 Profilaufrufe, 20 Nachrichten, 5 Anfragen) — die Konvertierung rechnet live mit. Bleibt nur in deinem Browser.</p>
     <div class="funnel-inputs">
-      <div><label for="inProfile">Profilaufrufe pro Monat</label><input type="number" id="inProfile" min="0" step="1" placeholder="z. B. 120"><div style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">Abrufbar in LinkedIn: Profil &rarr; Analytics &rarr; Profilaufrufe</div></div>
-      <div><label for="inMsgs">Nachrichten / Anfragen pro Monat</label><input type="number" id="inMsgs" min="0" step="1" placeholder="z. B. 4"><div style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">Deine Sch&auml;tzung: eingehende DMs mit Bezug zu deinem Angebot</div></div>
-      <div><label for="inLeads">Qualifizierte Kundenanfragen (Leads) pro Monat</label><input type="number" id="inLeads" min="0" step="1" placeholder="z. B. 1"><div style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">Deine Sch&auml;tzung: Anfragen, aus denen ein Gespr&auml;ch/Angebot wurde</div></div>
+      <div><label for="inProfile">Profilaufrufe / Monat <span style="color:var(--text-muted);font-weight:400">(aus LinkedIn Analytics)</span></label><input type="number" id="inProfile" min="0" step="1" placeholder="z. B. 500"></div>
+      <div><label for="inMsgs">Nachrichten / Anfragen pro Monat</label><input type="number" id="inMsgs" min="0" step="1" placeholder="z. B. 20"></div>
+      <div><label for="inLeads">Qualifizierte Anfragen / Monat</label><input type="number" id="inLeads" min="0" step="1" placeholder="z. B. 5"></div>
     </div>
     <div id="funnel"></div>
   </div>
@@ -359,7 +360,7 @@
 
   <div class="card" id="mailCard">
     <h2>Auswertung per E-Mail erhalten</h2>
-    <p class="desc">Wir schicken dir deine berechneten Kennzahlen (KPIs, Performance-Grafik, Top-Beiträge, Konsistenz, Konvertierung) als übersichtliche Mail — Basis ist der oben eingestellte Zeitraum. Übertragen werden nur diese Ergebnisse, deine Export-Rohdaten verlassen deinen Browser nicht. Max. 2 Mails pro Tag; E-Mail-Adresse wird nur für Versand und Missbrauchsschutz gespeichert.</p>
+    <p class="desc">Lass dir die Kern-KPIs + PDF-Report zuschicken. (Deine Daten werden hier nicht gespeichert — darum kommt die Auswertung per Mail. Max. 2 pro Tag.)</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
       <input type="email" id="mailInput" placeholder="deine@email.de" style="flex:1;min-width:220px;font:inherit;padding:10px 14px;border:1px solid var(--baseline);border-radius:10px">
       <input type="text" id="mailWebsite" style="display:none" tabindex="-1" autocomplete="off">
@@ -1005,18 +1006,8 @@ function renderFunnel(model) {
   }).join('');
 
   const extra = [];
-  if (p.msgs) {
-    extra.push(`✉️ Du brauchst aktuell ca. <strong>${fmt(impPerMonth / +p.msgs)} Impressions pro Nachricht/Anfrage</strong>. Doppelte Reichweite ≈ doppelte Anfragen — solange der Content gleich bleibt.`);
-  }
-  if (p.msgs && p.leads && +p.msgs > 0) {
-    extra.push(`🎯 <strong>${fmtPct(+p.leads / +p.msgs)}</strong> deiner Anfragen werden zu qualifizierten Leads. Wenn diese Quote niedrig ist, zieht dein Content die falschen Leute an — dann hilft schärfere Positionierung mehr als mehr Reichweite.`);
-  }
-  if (p.profile && impPerMonth > 0) {
-    extra.push(`👤 <strong>${fmtPct(+p.profile / impPerMonth)}</strong> deiner Impressions führen zu einem Profilbesuch. Unter 1 %? Dann fehlt in deinen Posts der Grund, auf dich zu klicken (klare Positionierung in den ersten 2 Zeilen, Profil-Slogan).`);
-  }
-  if (p.leads && impPerMonth > 0) {
-    extra.push(`🏁 <strong>Gesamtkonvertierung: ${(+p.leads / impPerMonth * 100).toLocaleString('de-DE', { maximumFractionDigits: 3 })} %</strong> — von ${fmt(impPerMonth)} Impressions pro Monat werden ${fmt(+p.leads)} qualifizierte Kundenanfragen. Anders gesagt: ca. ${fmt(impPerMonth / +p.leads)} Impressions pro Lead.`);
-  }
+  if (p.msgs > 0) extra.push(`Aktuell: ca. <strong>${fmt(impPerMonth / +p.msgs)} Impressions pro Nachricht/Anfrage</strong>.`);
+  if (p.leads > 0 && impPerMonth > 0) extra.push(`Gesamtkonvertierung: <strong>${(+p.leads / impPerMonth * 100).toLocaleString('de-DE', { maximumFractionDigits: 3 })} %</strong> — ca. ${fmt(impPerMonth / +p.leads)} Impressions pro qualifizierter Anfrage.`);
   document.getElementById('funnelInsights')?.remove();
   if (extra.length) {
     el.insertAdjacentHTML('afterend', `<div id="funnelInsights" style="margin-top:14px">${extra.map(h => `<div class="insight"><span>${h}</span></div>`).join('')}</div>`);
@@ -1260,7 +1251,7 @@ function buildSummary() {
 }
 
 // Chart-SVG → PNG (CSS-Variablen müssen für den Standalone-Render aufgelöst werden)
-async function chartToPng() {
+async function chartToPng(format) {
   const svgEl = document.querySelector('#chartCombined svg');
   if (!svgEl) return null;
   try {
@@ -1281,8 +1272,102 @@ async function chartToPng() {
       img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(src);
     });
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL('image/png');
+    return format === 'jpeg' ? canvas.toDataURL('image/jpeg', 0.85) : canvas.toDataURL('image/png');
   } catch { return null; }
+}
+
+// PDF-Report — komplett im Browser erzeugt (jsPDF), keine Speicherung
+async function buildPdf() {
+  if (!window.jspdf) return null;
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const W = 595, M = 48;
+    let y = 56;
+    const ink = '#1d1d1f', sec = '#52514e', mut = '#898781', blue = '#0071e3';
+
+    // Header
+    doc.setFont('helvetica', 'bold').setFontSize(15).setTextColor(ink).text('Kuehn', M, y);
+    doc.setTextColor(blue).text('.Tech', M + doc.getTextWidth('Kuehn'), y);
+    const range = getRange(currentModel);
+    doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(mut)
+      .text(`Zeitraum: ${fmtDate(range.start)} – ${fmtDate(range.end)}`, W - M, y, { align: 'right' });
+    y += 30;
+    doc.setFont('helvetica', 'bold').setFontSize(20).setTextColor(ink).text('Deine LinkedIn-Analyse', M, y);
+    y += 24;
+
+    // KPI-Boxen (aus den bereits berechneten Kacheln)
+    const tiles = [...document.querySelectorAll('#kpis .tile')].map(t => ({
+      label: t.querySelector('.label').textContent.replace(' ⓘ', ''),
+      value: t.querySelector('.value').textContent,
+      delta: (t.querySelector('.delta')?.textContent || '').replace('▲', '+').replace('▼', '−').replace('＝', '='),
+    }));
+    const bw = (W - 2 * M - 4 * 8) / 5;
+    tiles.slice(0, 5).forEach((t, i) => {
+      const x = M + i * (bw + 8);
+      doc.setFillColor(245, 245, 247).roundedRect(x, y, bw, 62, 6, 6, 'F');
+      doc.setFont('helvetica', 'normal').setFontSize(6.5).setTextColor(sec).text(t.label, x + 6, y + 12);
+      doc.setFont('helvetica', 'bold').setFontSize(13).setTextColor(ink).text(t.value, x + 6, y + 30);
+      doc.setFont('helvetica', 'normal').setFontSize(6).setTextColor(mut)
+        .text(doc.splitTextToSize(t.delta, bw - 10), x + 6, y + 42);
+    });
+    y += 80;
+
+    // Chart
+    const png = await chartToPng('jpeg');
+    if (png) {
+      const svgEl = document.querySelector('#chartCombined svg');
+      const vb = svgEl.viewBox.baseVal;
+      const cw = W - 2 * M, ch = cw * vb.height / vb.width;
+      doc.setFont('helvetica', 'bold').setFontSize(12).setTextColor(ink).text('Performance von Inhalten', M, y);
+      doc.addImage(png, 'JPEG', M, y + 8, cw, ch);
+      y += ch + 30;
+    }
+
+    // Top 10
+    doc.setFont('helvetica', 'bold').setFontSize(12).setTextColor(ink).text('Top-Beiträge', M, y);
+    y += 14;
+    const top = [...currentModel.posts].filter(p => p.imp).sort((a, b) => b.imp - a.imp).slice(0, 10);
+    doc.setFontSize(8);
+    for (const p of top) {
+      if (y > 790) { doc.addPage(); y = 56; }
+      doc.setFont('helvetica', 'normal').setTextColor(sec).text(fmtDate(p.date), M, y);
+      doc.setTextColor(ink).text(doc.splitTextToSize(p.title, 300)[0], M + 46, y);
+      doc.setTextColor(sec).text(`${fmt(p.imp)} Impr.`, W - M - 60, y, { align: 'right' });
+      doc.setTextColor(p.er >= 0.03 ? '#006300' : sec).text(`ER ${fmtPct(p.er)}`, W - M, y, { align: 'right' });
+      y += 13;
+    }
+    y += 16;
+
+    // Wer dir folgt
+    if (y > 640) { doc.addPage(); y = 56; }
+    doc.setFont('helvetica', 'bold').setFontSize(12).setTextColor(ink).text('Wer dir folgt', M, y);
+    y += 16;
+    const ORDER = ['Branche', 'Firmengröße', 'Position', 'Karrierestufe', 'Standort', 'Unternehmen'];
+    const cats = Object.entries(currentModel.demographics || {})
+      .sort((a, b) => (ORDER.indexOf(a[0]) + 99 * (ORDER.indexOf(a[0]) < 0)) - (ORDER.indexOf(b[0]) + 99 * (ORDER.indexOf(b[0]) < 0)));
+    const colW = (W - 2 * M - 2 * 16) / 3;
+    cats.forEach(([cat, rows], i) => {
+      const col = i % 3, x = M + col * (colW + 16);
+      if (col === 0 && i > 0) y += 76;
+      if (y > 730) { doc.addPage(); y = 56; }
+      doc.setFont('helvetica', 'bold').setFontSize(8.5).setTextColor(ink).text(cat, x, y);
+      rows.slice(0, 4).forEach((r, j) => {
+        doc.setFont('helvetica', 'normal').setFontSize(7.5).setTextColor(sec)
+          .text(doc.splitTextToSize(`${r.name}  ·  ${r.label}`, colW)[0], x, y + 12 + j * 11);
+      });
+    });
+    y += 92;
+
+    // CTA
+    if (y > 740) { doc.addPage(); y = 56; }
+    doc.setFillColor(0, 113, 227).roundedRect(M, y, W - 2 * M, 58, 8, 8, 'F');
+    doc.setFont('helvetica', 'bold').setFontSize(11).setTextColor('#ffffff').text('Wo klemmt es wirklich? Mach den kostenlosen Engpass-Check.', M + 16, y + 24);
+    doc.setFont('helvetica', 'normal').setFontSize(9.5).textWithLink('kuehn.tech/check', M + 16, y + 42, { url: 'https://kuehn.tech/check' });
+    doc.setFontSize(7).setTextColor(mut).text('Erstellt mit dem LinkedIn Analytics Dashboard von Kuehn.Tech - alle Auswertungen liefen lokal in deinem Browser.', M, 820);
+
+    return doc.output('datauristring').replace(/^data:application\/pdf;[^,]*,/, 'data:application/pdf;base64,');
+  } catch (e) { console.error(e); return null; }
 }
 
 document.getElementById('mailBtn').addEventListener('click', async () => {
@@ -1295,7 +1380,7 @@ document.getElementById('mailBtn').addEventListener('click', async () => {
     const res = await fetch('https://kuehn.tech/api/linkedin-report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, website: document.getElementById('mailWebsite').value, summary: buildSummary(), chartPng: await chartToPng() }),
+      body: JSON.stringify({ email, website: document.getElementById('mailWebsite').value, summary: buildSummary(), pdf: await buildPdf(), chartPng: await chartToPng() }),
     });
     if (!res.ok) throw new Error((await res.json()).error || res.statusText);
     status.textContent = '✅ Unterwegs! Schau in dein Postfach (ggf. auch im Spam).';
