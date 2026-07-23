@@ -285,25 +285,22 @@
   <div class="kpis" id="kpis"></div>
 
   <div class="card">
-    <h2>Aktivität: Impressions, Follower &amp; Engagement</h2>
-    <p class="desc">Linke Achse: Impressions (Balken). Rechte Achse: neue Follower (Linie). Ein Hover zeigt alle Werte. Klick auf einen Balken filtert die Beiträge darunter auf diesen Zeitraum.</p>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-      <span style="font-size:0.78rem;font-weight:600;color:var(--text-secondary)">Darstellung</span>
-      <div class="seg" id="cumSeg">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+      <div style="flex:1;min-width:0">
+        <h2>Aktivität: Impressions, Follower &amp; Engagement</h2>
+        <p class="desc" style="margin-bottom:10px">Linke Achse: Impressions. Rechte Achse: neue Follower. Engagement-Rate als Linie (eigene Skala, Werte im Tooltip). Klick auf einen Balken filtert die Beiträge darunter.</p>
+      </div>
+      <div class="seg" id="cumSeg" style="flex-shrink:0">
         <button data-cum="0" class="active">Normal</button>
         <button data-cum="1">Kumulativ</button>
       </div>
     </div>
-    <div class="legend">
-      <span class="item"><span class="swatch" style="background:var(--series-1)"></span>Impressions (linke Achse)</span>
-      <span class="item"><span class="swatch" style="background:var(--series-2)"></span>Neue Follower (rechte Achse)</span>
+    <div class="legend" id="seriesLegend">
+      <label class="item" style="cursor:pointer"><input type="checkbox" data-series="imp" checked><span class="swatch" style="background:var(--series-1)"></span>Impressions (linke Achse)</label>
+      <label class="item" style="cursor:pointer"><input type="checkbox" data-series="fol" checked><span class="swatch" style="background:var(--series-2)"></span>Neue Follower (rechte Achse)</label>
+      <label class="item" style="cursor:pointer" title="Engagement = Reaktionen + Kommentare + geteilte Beiträge — Aufschlüsselung steckt nicht im Export"><input type="checkbox" data-series="er" checked><span class="swatch" style="background:var(--series-3)"></span>Engagement-Rate</label>
     </div>
     <div class="chart-wrap"><div id="chartCombined"></div></div>
-    <div class="legend" style="margin-top:14px">
-      <span class="item"><span class="swatch" style="background:var(--series-3)"></span>Engagement-Rate</span>
-      <span class="item" style="color:var(--text-muted)">= (Reaktionen + Kommentare + geteilte Beiträge) ÷ Impressions — die Aufschlüsselung nach Typ steckt nicht im Export</span>
-    </div>
-    <div class="chart-wrap"><div id="chartER"></div></div>
   </div>
 
   <div class="card">
@@ -544,13 +541,17 @@ function makeBins(model, gran, range) {
       b.rangeEnd = new Date(b.start.getFullYear(), b.start.getMonth() + 1, 0);
     }
     b.longLabel = b.longLabel || b.label;
+    // Beiträge (Top 50) im Bin zählen
+    const s0 = new Date(b.start); s0.setHours(0, 0, 0, 0);
+    const e0 = new Date(b.rangeEnd); e0.setHours(23, 59, 59, 999);
+    b.postCount = model.posts.filter(p => p.date && p.date >= s0 && p.date <= e0).length;
   }
   return bins;
 }
 
 // ---------- Chart-State ----------
 
-const state = { gran: 'daily', rangeMode: 'days', rangeDays: 7, customStart: null, customEnd: null, customBack: null, selected: null, cum: false };
+const state = { gran: 'daily', rangeMode: 'days', rangeDays: 7, customStart: null, customEnd: null, customBack: null, selected: null, cum: false, show: { imp: true, fol: true, er: true } };
 let currentModel = null;
 let currentBins = [];
 
@@ -567,14 +568,17 @@ function showTip(evt, html) {
 function hideTip() { tooltip.style.display = 'none'; }
 
 function binTip(b) {
+  const postsRow = `<div class="t-row">📝 Beiträge: ${b.postCount ?? 0} <span style="color:var(--text-muted)">(aus Top 50)</span></div>`;
   if (b.periodImp != null) return `<div class="t-title">${b.longLabel} (kumuliert)</div>
     <div class="t-row"><span class="sw" style="background:var(--series-1)"></span>Impressions: ${fmt(b.imp)} (Zeitraum: +${fmt(b.periodImp)})</div>
     <div class="t-row"><span class="sw" style="background:var(--series-2)"></span>Follower: ${fmt(b.fol)} (Zeitraum: +${fmt(b.periodFol)})</div>
-    <div class="t-row"><span class="sw" style="background:var(--series-3)"></span>Engagements: ${fmt(b.eng)} (Zeitraum: +${fmt(b.periodEng)})</div>`;
+    <div class="t-row"><span class="sw" style="background:var(--series-3)"></span>Engagements: ${fmt(b.eng)} (Zeitraum: +${fmt(b.periodEng)}) · ER gesamt ${fmtPct(b.imp ? b.eng / b.imp : null)}</div>
+    ${postsRow}`;
   return `<div class="t-title">${b.longLabel}</div>
     <div class="t-row"><span class="sw" style="background:var(--series-1)"></span>Impressions: ${fmt(b.imp)}</div>
     <div class="t-row"><span class="sw" style="background:var(--series-2)"></span>Neue Follower: ${fmt(b.fol)}</div>
-    <div class="t-row"><span class="sw" style="background:var(--series-3)"></span>Engagement: ${fmt(b.eng)} (ER ${fmtPct(b.er)})</div>`;
+    <div class="t-row"><span class="sw" style="background:var(--series-3)"></span>Engagement: ${fmt(b.eng)} (ER ${fmtPct(b.er)})</div>
+    ${postsRow}`;
 }
 
 // ---------- Kombinierter Chart: Impressions (linke Achse, Balken) + Follower (rechte Achse, Linie) ----------
@@ -592,10 +596,10 @@ function renderCombined() {
   if (!bins.length) { el.innerHTML = '<p style="color:var(--text-muted);font-size:0.84rem">Keine Daten im gewählten Zeitraum.</p>'; return; }
 
   if (state.cum) {
-    let ci = 0, cf = 0, ce = 0;
+    let ci = 0, cf = 0, ce = 0, cp = 0;
     bins = bins.map(b => {
-      ci += b.imp; cf += b.fol; ce += b.eng;
-      return { ...b, imp: ci, fol: cf, eng: ce, periodImp: b.imp, periodFol: b.fol, periodEng: b.eng };
+      ci += b.imp; cf += b.fol; ce += b.eng; cp += b.postCount || 0;
+      return { ...b, imp: ci, fol: cf, eng: ce, postCount: cp, er: ci ? ce / ci : null, periodImp: b.imp, periodFol: b.fol, periodEng: b.eng };
     });
   }
 
@@ -619,16 +623,33 @@ function renderCombined() {
     ? `<path d="M${x},${base} L${x},${y + 3} Q${x},${y} ${x + 3},${y} L${x + w - 3},${y} Q${x + w},${y} ${x + w},${y + 3} L${x + w},${base} Z" fill="${fill}" ${extra}/>`
     : `<rect x="${x}" y="${y}" width="${Math.max(w, 1)}" height="${base - y}" fill="${fill}" ${extra}/>`;
 
-  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="Impressions (linke Achse) und neue Follower (rechte Achse)">`;
-  // Gridlines + beidseitige Achsen-Ticks (links Impressions-blau, rechts Follower-orange)
+  const show = state.show;
+  const maxEr = Math.max(0.005, ...bins.map(b => b.er).filter(v => v != null));
+  const yEr = v => P.t + plotH * (1 - v / maxEr);
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="Impressions (linke Achse), neue Follower (rechte Achse), Engagement-Rate">`;
   for (const f of [0.5, 1]) {
     const y = P.t + plotH * (1 - f);
     s += `<line x1="${P.l}" y1="${y}" x2="${W - P.r}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`;
-    s += `<text x="${P.l - 8}" y="${y + 3}" text-anchor="end" font-size="10" fill="var(--series-1)">${fmt(maxImp * f)}</text>`;
-    s += `<text x="${W - P.r + 8}" y="${y + 3}" text-anchor="start" font-size="10" fill="var(--series-2)">${fmt(maxFol * f)}</text>`;
+    if (show.imp) s += `<text x="${P.l - 8}" y="${y + 3}" text-anchor="end" font-size="10" fill="var(--series-1)">${fmt(maxImp * f)}</text>`;
+    if (show.fol) s += `<text x="${W - P.r + 8}" y="${y + 3}" text-anchor="start" font-size="10" fill="var(--series-2)">${fmt(maxFol * f)}</text>`;
   }
   s += `<text x="${P.l - 8}" y="${base + 3}" text-anchor="end" font-size="10" fill="var(--text-muted)">0</text>`;
   s += `<text x="${W - P.r + 8}" y="${base + 3}" text-anchor="start" font-size="10" fill="var(--text-muted)">0</text>`;
+
+  const erLine = () => {
+    let d = '', started = false;
+    bins.forEach((b, i) => {
+      if (b.er == null) { started = false; return; }
+      d += (started ? 'L' : 'M') + xc(i).toFixed(1) + ',' + yEr(b.er).toFixed(1) + ' ';
+      started = true;
+    });
+    let out = `<path d="${d}" fill="none" stroke="var(--series-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+    if (n <= 60) bins.forEach((b, i) => {
+      if (b.er != null) out += `<circle cx="${xc(i)}" cy="${yEr(b.er)}" r="3" fill="var(--series-3)" stroke="var(--surface-1)" stroke-width="1.5"/>`;
+    });
+    return out;
+  };
 
   const xc = i => P.l + (i + 0.5) * bw;
 
@@ -640,17 +661,22 @@ function renderCombined() {
       return d + ` L${xc(n - 1).toFixed(1)},${base} Z`;
     };
     const line = (yOf, get) => bins.map((b, i) => (i ? 'L' : 'M') + xc(i).toFixed(1) + ',' + yOf(get(b)).toFixed(1)).join(' ');
-    s += `<path d="${area(yImp, b => b.imp)}" fill="var(--series-1)" fill-opacity="0.22"/>`;
-    s += `<path d="${line(yImp, b => b.imp)}" fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linejoin="round"/>`;
-    s += `<path d="${area(yFol, b => b.fol)}" fill="var(--series-2)" fill-opacity="0.22"/>`;
-    s += `<path d="${line(yFol, b => b.fol)}" fill="none" stroke="var(--series-2)" stroke-width="2" stroke-linejoin="round"/>`;
+    if (show.imp) {
+      s += `<path d="${area(yImp, b => b.imp)}" fill="var(--series-1)" fill-opacity="0.22"/>`;
+      s += `<path d="${line(yImp, b => b.imp)}" fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linejoin="round"/>`;
+    }
+    if (show.fol) {
+      s += `<path d="${area(yFol, b => b.fol)}" fill="var(--series-2)" fill-opacity="0.22"/>`;
+      s += `<path d="${line(yFol, b => b.fol)}" fill="none" stroke="var(--series-2)" stroke-width="2" stroke-linejoin="round"/>`;
+    }
+    if (show.er) s += erLine();
     if (n <= 60) bins.forEach((b, i) => {
-      s += `<circle cx="${xc(i)}" cy="${yImp(b.imp)}" r="3.5" fill="var(--series-1)" stroke="var(--surface-1)" stroke-width="2"/>`;
-      s += `<circle cx="${xc(i)}" cy="${yFol(b.fol)}" r="3.5" fill="var(--series-2)" stroke="var(--surface-1)" stroke-width="2"/>`;
+      if (show.imp) s += `<circle cx="${xc(i)}" cy="${yImp(b.imp)}" r="3.5" fill="var(--series-1)" stroke="var(--surface-1)" stroke-width="2"/>`;
+      if (show.fol) s += `<circle cx="${xc(i)}" cy="${yFol(b.fol)}" r="3.5" fill="var(--series-2)" stroke="var(--surface-1)" stroke-width="2"/>`;
     });
     const lastB = bins[n - 1];
-    s += `<text x="${Math.min(xc(n - 1), W - P.r - 4)}" y="${yImp(lastB.imp) - 8}" text-anchor="end" font-size="10" font-weight="600" fill="var(--series-1)">${fmt(lastB.imp)}</text>`;
-    s += `<text x="${Math.min(xc(n - 1), W - P.r - 4)}" y="${yFol(lastB.fol) + 16}" text-anchor="end" font-size="10" font-weight="600" fill="var(--series-2)">${fmt(lastB.fol)}</text>`;
+    if (show.imp) s += `<text x="${Math.min(xc(n - 1), W - P.r - 4)}" y="${yImp(lastB.imp) - 8}" text-anchor="end" font-size="10" font-weight="600" fill="var(--series-1)">${fmt(lastB.imp)}</text>`;
+    if (show.fol) s += `<text x="${Math.min(xc(n - 1), W - P.r - 4)}" y="${yFol(lastB.fol) + 16}" text-anchor="end" font-size="10" font-weight="600" fill="var(--series-2)">${fmt(lastB.fol)}</text>`;
     bins.forEach((b, i) => {
       if (i % labelEvery === 0)
         s += `<text x="${xc(i)}" y="${H - 6}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${b.label}</text>`;
@@ -663,24 +689,29 @@ function renderCombined() {
       const x = P.l + i * bw + bw * (1 - barFrac) / 2, w = bw * barFrac;
       const sel = state.selected === i;
       const dim = state.selected != null && !sel;
-      s += bar(x, w, yImp(b.imp), 'var(--series-1)', `opacity="${dim ? 0.3 : 1}"`);
+      if (show.imp) {
+        s += bar(x, w, yImp(b.imp), 'var(--series-1)', `opacity="${dim ? 0.3 : 1}"`);
+        if (i === maxImpIdx && b.imp > 0 && !dim)
+          s += `<text x="${P.l + i * bw + bw / 2}" y="${yImp(b.imp) - 5}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--text-secondary)">${fmt(b.imp)}</text>`;
+      }
       if (sel) s += `<rect x="${P.l + i * bw + 0.5}" y="${P.t - 6}" width="${bw - 1}" height="${plotH + 8}" fill="none" stroke="var(--accent)" stroke-width="1.5" rx="6"/>`;
-      if (i === maxImpIdx && b.imp > 0 && !dim)
-        s += `<text x="${P.l + i * bw + bw / 2}" y="${yImp(b.imp) - 5}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--text-secondary)">${fmt(b.imp)}</text>`;
       if (i % labelEvery === 0)
         s += `<text x="${P.l + i * bw + bw / 2}" y="${H - 6}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${b.label}</text>`;
     });
 
     // Follower-Linie (rechte Achse)
-    let path = '';
-    bins.forEach((b, i) => {
-      path += (i ? 'L' : 'M') + xc(i).toFixed(1) + ',' + yFol(b.fol).toFixed(1) + ' ';
-    });
-    s += `<path d="${path}" fill="none" stroke="var(--series-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
-    if (n <= 60) bins.forEach((b, i) => {
-      const dim = state.selected != null && state.selected !== i;
-      s += `<circle cx="${xc(i)}" cy="${yFol(b.fol)}" r="4" fill="var(--series-2)" stroke="var(--surface-1)" stroke-width="2" ${dim ? 'opacity="0.3"' : ''}/>`;
-    });
+    if (show.fol) {
+      let path = '';
+      bins.forEach((b, i) => {
+        path += (i ? 'L' : 'M') + xc(i).toFixed(1) + ',' + yFol(b.fol).toFixed(1) + ' ';
+      });
+      s += `<path d="${path}" fill="none" stroke="var(--series-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+      if (n <= 60) bins.forEach((b, i) => {
+        const dim = state.selected != null && state.selected !== i;
+        s += `<circle cx="${xc(i)}" cy="${yFol(b.fol)}" r="4" fill="var(--series-2)" stroke="var(--surface-1)" stroke-width="2" ${dim ? 'opacity="0.3"' : ''}/>`;
+      });
+    }
+    if (show.er) s += erLine();
   }
 
   // Hit-Bereiche
@@ -697,46 +728,8 @@ function renderCombined() {
     r.addEventListener('mouseleave', hideTip);
     r.addEventListener('click', () => {
       state.selected = state.selected === i ? null : i;
-      renderCombined(); renderER(); renderPosts();
+      renderCombined(); renderPosts();
     });
-  });
-}
-
-function renderER() {
-  const bins = currentBins;
-  const el = document.getElementById('chartER');
-  if (!bins.length) { el.innerHTML = ''; return; }
-  const n = bins.length;
-  const W = Math.min(Math.max(600, n * 46), 1040), H = 150, P = { t: 16, r: 8, b: 22, l: 8 };
-  const vals = bins.map(b => b.er);
-  const max = Math.max(0.005, ...vals.filter(v => v != null));
-  const xOf = i => P.l + (i + 0.5) * (W - P.l - P.r) / n;
-  const yOf = v => P.t + (H - P.t - P.b) * (1 - v / max);
-  const labelEvery = Math.max(1, Math.ceil(n / 13));
-  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="Engagement-Rate">`;
-  for (const f of [0.5, 1]) {
-    const y = P.t + (H - P.t - P.b) * (1 - f);
-    s += `<line x1="${P.l}" y1="${y}" x2="${W - P.r}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`;
-  }
-  let path = '', started = false;
-  bins.forEach((b, i) => {
-    if (b.er == null) { started = false; return; }
-    path += (started ? 'L' : 'M') + xOf(i).toFixed(1) + ',' + yOf(b.er).toFixed(1) + ' ';
-    started = true;
-  });
-  s += `<path d="${path}" fill="none" stroke="var(--series-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
-  const dots = n <= 60;
-  bins.forEach((b, i) => {
-    if (b.er == null) return;
-    if (dots) s += `<circle cx="${xOf(i)}" cy="${yOf(b.er)}" r="4" fill="var(--series-3)" stroke="var(--surface-1)" stroke-width="2" ${state.selected != null && state.selected !== i ? 'opacity="0.35"' : ''}/>`;
-    s += `<rect x="${xOf(i) - (W - P.l - P.r) / n / 2}" y="${P.t}" width="${(W - P.l - P.r) / n}" height="${H - P.t - P.b}" fill="transparent" data-i="${i}" class="hit"/>`;
-    if (i % labelEvery === 0) s += `<text x="${xOf(i)}" y="${H - 6}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${b.label}</text>`;
-  });
-  s += `<line x1="${P.l}" y1="${H - P.b}" x2="${W - P.r}" y2="${H - P.b}" stroke="var(--baseline)" stroke-width="1"/></svg>`;
-  el.innerHTML = s;
-  el.querySelectorAll('.hit').forEach(r => {
-    r.addEventListener('mousemove', evt => showTip(evt, binTip(bins[+r.dataset.i])));
-    r.addEventListener('mouseleave', hideTip);
   });
 }
 
@@ -781,6 +774,12 @@ document.querySelectorAll('#granSeg button').forEach(btn => {
     refreshBins();
   });
 });
+document.querySelectorAll('#seriesLegend input').forEach(cb => {
+  cb.addEventListener('change', () => {
+    state.show[cb.dataset.series] = cb.checked;
+    renderCombined();
+  });
+});
 document.querySelectorAll('#cumSeg button').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('#cumSeg button').forEach(b => b.classList.remove('active'));
@@ -791,7 +790,7 @@ document.querySelectorAll('#cumSeg button').forEach(btn => {
 });
 document.getElementById('clearSelection').addEventListener('click', () => {
   state.selected = null;
-  renderCombined(); renderER(); renderPosts();
+  renderCombined(); renderPosts();
 });
 
 function refreshBins() {
@@ -799,7 +798,7 @@ function refreshBins() {
   const range = getRange(currentModel);
   currentBins = makeBins(currentModel, state.gran, range);
   renderKpis(range);
-  renderCombined(); renderER(); renderPosts();
+  renderCombined(); renderPosts();
 }
 
 // ---------- Responsive KPIs mit Vorzeitraum-Vergleich ----------
